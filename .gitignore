@@ -1,2 +1,10 @@
 .vscode/
 build/
+
+# Object files
+*.o
+
+# Executables
+src/bwt
+src/inverse_bwt
+tests/test_*
