@@ -1,4 +1,5 @@
 #include "bwt.hpp"
+#include "file_processor.hpp"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -51,40 +52,30 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    // Open input file
-    std::ifstream file(argv[1], std::ios::binary);
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open input file " << argv[1] << std::endl;
+    // Create FileProcessor to handle file I/O
+    FileProcessor processor(argv[1], argv[2], block_size);
+    
+    if (!processor.is_open()) {
         return 1;
     }
     
-    // Open output file
-    std::ofstream out_file(argv[2], std::ios::binary);
-    if (!out_file.is_open()) {
-        std::cerr << "Error: Could not open output file " << argv[2] << std::endl;
-        file.close();
-        return 1;
-    }
     // Process file in chunks
-    std::vector<char> buffer(block_size);
     char delimiter = '~';
     
-    while (file.good()) {
+    while (processor.has_more_data()) {
         // Read a chunk
-        file.read(buffer.data(), block_size);
-        size_t bytes_read = file.gcount();
+        std::string chunk = processor.read_chunk();
         
-        if (bytes_read == 0) {
+        if (chunk.empty()) {
             break;
         }
         
-        std::string chunk(buffer.data(), bytes_read);
+        // Apply BWT and write result
         std::string result = bwt_forward(chunk, delimiter);
-        out_file.write(result.c_str(), result.length());
+        processor.write_chunk(result);
     }
     
-    file.close();
-    out_file.close();
+    processor.close();
     return 0;
 }
 #endif // BUILD_TESTS
