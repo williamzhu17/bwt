@@ -51,6 +51,7 @@ run-%: %
 # Clean target
 clean:
 	rm -f $(TEST_EXECUTABLES) $(OBJ_FILES)
+	rm -rf tmp/
 
 # Rebuild everything
 rebuild: clean all
