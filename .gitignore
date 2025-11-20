@@ -8,3 +8,5 @@ build/
 src/bwt
 src/inverse_bwt
 tests/test_*
+
+.DS_Store
