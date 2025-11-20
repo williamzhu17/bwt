@@ -4,8 +4,10 @@
 #include <vector>
 #include <fstream>
 #include <cstdio>
+#include <algorithm>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <dirent.h>
 #include "../src/file_processor.hpp"
 #include "../src/bwt.hpp"
 #include "../src/inverse_bwt.hpp"
@@ -108,8 +110,8 @@ TestResult test_file_round_trip(const std::string& test_name, const std::string&
     }
     
     // Write temporary files to tmp/ directory
-    std::string forward_file = "tmp/" + safe_name + "_forward.txt";
-    std::string recovered_file = "tmp/" + safe_name + "_recovered.txt";
+    std::string forward_file = "tmp/" + safe_name + "_forward";
+    std::string recovered_file = "tmp/" + safe_name + "_recovered";
     
     // Step 1: Forward BWT (read chunks, transform, write)
     {
@@ -202,6 +204,61 @@ void run_test(const std::string& test_name, const TestResult& result) {
     std::cout << std::endl;
 }
 
+// Helper function to list all files in a directory
+std::vector<std::string> list_files_in_directory(const std::string& dir_path) {
+    std::vector<std::string> files;
+    DIR* dir = opendir(dir_path.c_str());
+    
+    if (dir == nullptr) {
+        std::cerr << "Warning: Could not open directory: " << dir_path << std::endl;
+        return files;
+    }
+    
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        // Skip "." and ".." entries
+        if (std::string(entry->d_name) == "." || std::string(entry->d_name) == "..") {
+            continue;
+        }
+        
+        // Build full path to check if it's a file
+        std::string full_path = dir_path + "/" + entry->d_name;
+        struct stat st;
+        if (stat(full_path.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
+            files.push_back(entry->d_name);
+        }
+    }
+    
+    closedir(dir);
+    return files;
+}
+
+// Generate test cases for all files in a directory with specified block sizes
+std::vector<MediumTestCase> generate_test_cases(const std::string& data_dir, 
+                                                 const std::vector<size_t>& block_sizes,
+                                                 char delimiter = '~') {
+    std::vector<MediumTestCase> test_cases;
+    std::vector<std::string> files = list_files_in_directory(data_dir);
+    
+    // Sort files for consistent test ordering
+    std::sort(files.begin(), files.end());
+    
+    for (const auto& filename : files) {
+        for (size_t block_size : block_sizes) {
+            std::string test_name = filename + " (" + std::to_string(block_size);
+            if (block_size >= 1024) {
+                test_name = filename + " (" + std::to_string(block_size / 1024) + "KB";
+            }
+            test_name += " blocks)";
+            
+            std::string file_path = data_dir + "/" + filename;
+            test_cases.push_back({test_name, file_path, block_size, delimiter});
+        }
+    }
+    
+    return test_cases;
+}
+
 int main() {
     std::cout << "Running BWT medium file tests...\n" << std::endl;
     
@@ -213,25 +270,22 @@ int main() {
     std::cout << "Output directory: tmp/" << std::endl;
     std::cout << "All forward and recovered files will be saved for inspection.\n" << std::endl;
     
-    // Define test cases with various files and block sizes
-    std::vector<MediumTestCase> test_cases = {
-        // Alice in Wonderland with various block sizes
-        {"Alice in Wonderland (128B blocks)", "../data/large_text/alice_in_wonderland.txt", 128, '~'},
-        {"Alice in Wonderland (256B blocks)", "../data/large_text/alice_in_wonderland.txt", 256, '~'},
-        // {"Alice in Wonderland (512B blocks)", "../data/large_text/alice_in_wonderland.txt", 512, '~'},
-        // {"Alice in Wonderland (1KB blocks)", "../data/large_text/alice_in_wonderland.txt", 1024, '~'},
-        // {"Alice in Wonderland (4KB blocks)", "../data/large_text/alice_in_wonderland.txt", 4096, '~'},
-        // {"Alice in Wonderland (16KB blocks)", "../data/large_text/alice_in_wonderland.txt", 16384, '~'},
-        // {"Alice in Wonderland (64KB blocks)", "../data/large_text/alice_in_wonderland.txt", 65536, '~'},
-        
-        // KJV Bible with various block sizes
-        // {"KJV Bible (1KB blocks)", "../data/large_text/kjv_bible.txt", 1024, '~'},
-        // {"KJV Bible (4KB blocks)", "../data/large_text/kjv_bible.txt", 4096, '~'},
-        // {"KJV Bible (16KB blocks)", "../data/large_text/kjv_bible.txt", 16384, '~'},
-        
-        // Test with different delimiter
-        {"Alice with custom delimiter (128B blocks)", "../data/large_text/alice_in_wonderland.txt", 128, '$'},
-    };
+    // Define the data directory and block sizes to test
+    std::string data_dir = "../data/medium_size";
+    // std::vector<size_t> block_sizes = {128, 256, 512, 1024, 4096, 16384};
+    std::vector<size_t> block_sizes = {128};
+    
+    // Dynamically generate test cases for all files in the directory
+    std::cout << "Scanning directory: " << data_dir << std::endl;
+    std::vector<MediumTestCase> test_cases = generate_test_cases(data_dir, block_sizes, '~');
+    
+    if (test_cases.empty()) {
+        std::cerr << "Error: No test cases generated. Check if data directory exists and contains files." << std::endl;
+        return 1;
+    }
+    
+    std::cout << "Generated " << test_cases.size() << " test cases from " 
+              << (test_cases.size() / block_sizes.size()) << " files\n" << std::endl;
     
     // Run all tests and track results
     int passed_count = 0;
