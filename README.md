@@ -89,6 +89,25 @@ cd src
 
 ## Testing
 
+### Test Infrastructure
+
+The project includes a comprehensive testing infrastructure with two main test suites:
+
+#### `test_small`
+- Tests basic BWT and inverse BWT functionality
+- Uses small, hardcoded test strings
+- Validates correctness on edge cases and simple examples
+- Fast execution for quick validation during development
+
+#### `test_medium`
+- Tests real-world files with various sizes and content types
+- Dynamically generates test cases from all files in a specified directory
+- Tests multiple block sizes (128, 256, 512, 1024, 4096, 16384 bytes)
+- Performs full round-trip validation (forward BWT → inverse BWT)
+- Saves intermediate files to `tests/tmp/` for inspection and debugging
+- Verifies byte-by-byte identity between original and recovered files
+- Reports detailed statistics including file sizes and test counts
+
 ### Running Tests
 
 1. Navigate to the `tests/` directory:
@@ -106,10 +125,20 @@ cd src
    - Run all tests
    - Display a summary of passed/failed tests
 
+3. Run individual test suites:
+   ```bash
+   # Run small tests (quick validation)
+   make run-test_small
+   
+   # Run medium tests (comprehensive file testing)
+   make run-test_medium
+   ```
+
 ### Other Test Make Targets
 
 - `make` or `make all` - Build all test executables
 - `make test_small` - Build only the `test_small` executable
+- `make test_medium` - Build only the `test_medium` executable
 - `make run-test_small` - Run a specific test (e.g., `test_small`)
 - `make clean` - Remove all test executables and object files
 - `make rebuild` - Clean and rebuild everything
@@ -127,10 +156,41 @@ make test_small
 
 Tests will display:
 - Individual test results with `[PASS]` or `[FAIL]` status
-- Error messages for failed tests
+- Error messages for failed tests including:
+  - File size mismatches
+  - Round-trip validation failures
+  - File I/O errors
 - A summary showing total tests, passed, and failed counts
+
+### Test Data
+
+The project uses several test data sets:
+
+- **Canterbury Corpus** (`data/canterbury_corpus/`) - Standard compression benchmark files including text, source code, HTML, binary data, and more
+- **Silesia Corpus** (`data/silesia/`) - Large-scale compression benchmark files with diverse content types
+- **Large Files** (`data/large_size/`) - Additional large test files such as the King James Bible
+
+### Inspecting Test Outputs
+
+When running medium tests, all intermediate files are saved to `tests/tmp/`:
+- Files ending in `__forward` contain the BWT-transformed data
+- Files ending in `__recovered` contain the data after inverse BWT
+- These files can be inspected to debug transformation issues or verify correctness
 
 ## Project Structure
 - `src/` - Source files and Makefile (executables are built here)
-- `tests/` - Test files
+- `tests/` - Test files and test infrastructure
 - `data/` - Test data files
+  - `canterbury_corpus/` - Standard compression benchmark files
+  - `silesia/` - Large-scale compression benchmark files
+  - `large_size/` - Additional large test files
+
+## Credits and Acknowledgments
+
+This project uses test data from the following sources:
+
+- **Canterbury Corpus**: A collection of standard benchmark files for evaluating compression algorithms. Created by the University of Canterbury and widely used in compression research. Available at: http://corpus.canterbury.ac.nz/
+
+- **Silesia Corpus**: A comprehensive compression benchmark corpus containing diverse file types representative of real-world data. Maintained by the Silesian University of Technology. Available at: http://sun.aei.polsl.pl/~sdeor/index.php?page=silesia
+
+These corpora provide valuable test cases with varying characteristics (text, binary, structured data, etc.) to ensure robust BWT implementation across different data types.
