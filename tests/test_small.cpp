@@ -6,108 +6,158 @@
 #include "../src/bwt.hpp"
 #include "../src/inverse_bwt.hpp"
 
+// Test result structure
+struct TestResult {
+    bool passed;
+    std::string error_msg;
+    
+    TestResult(bool p, const std::string& msg = "") : passed(p), error_msg(msg) {}
+};
+
 // Test case structure
 struct TestCase {
     std::string name;
-    std::function<bool()> test_func;
+    std::function<TestResult()> test_func;
 };
 
 // Helper function to run a test and report results
-void run_test(const std::string& test_name, bool passed) {
-    std::cout << "[" << (passed ? "PASS" : "FAIL") << "] " << test_name << std::endl;
+void run_test(const std::string& test_name, const TestResult& result) {
+    std::cout << "[" << (result.passed ? "PASS" : "FAIL") << "] " << test_name;
+    if (!result.passed && !result.error_msg.empty()) {
+        std::cout << " - " << result.error_msg;
+    }
+    std::cout << std::endl;
 }
 
 // Test forward BWT on a simple string
-bool test_forward_basic() {
+TestResult test_forward_basic() {
     std::string input = "banana";
     std::string result = bwt_forward(input);
     // Expected: "annb~aa" (last column of sorted rotations)
-    // Let's verify it's the correct length and contains expected characters
-    return (result.length() == input.length() + 1) && // +1 for delimiter
-           (result.find('~') != std::string::npos) && // Should contain delimiter
-           (result == "annb~aa"); // Expected result
+    
+    if (result.length() != input.length() + 1) {
+        return TestResult(false, "Expected length " + std::to_string(input.length() + 1) + 
+                          ", got " + std::to_string(result.length()));
+    }
+    if (result.find('~') == std::string::npos) {
+        return TestResult(false, "Result does not contain delimiter '~'");
+    }
+    if (result != "annb~aa") {
+        return TestResult(false, "Expected \"annb~aa\", got \"" + result + "\"");
+    }
+    return TestResult(true);
 }
 
 // Test inverse BWT on a known BWT string
-bool test_inverse_basic() {
+TestResult test_inverse_basic() {
     // For "banana", the BWT should be reversible
     std::string input = "banana";
     std::string bwt_result = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt_result);
-    return (recovered == input);
+    if (recovered != input) {
+        return TestResult(false, "Expected \"" + input + "\", got \"" + recovered + "\"");
+    }
+    return TestResult(true);
 }
 
 // Test round-trip: forward then inverse should return original
-bool test_round_trip() {
+TestResult test_round_trip() {
     std::string input = "hello";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    return (recovered == input);
+    if (recovered != input) {
+        return TestResult(false, "Expected \"" + input + "\", got \"" + recovered + "\"");
+    }
+    return TestResult(true);
 }
 
 // Test round-trip with different string
-bool test_round_trip_2() {
+TestResult test_round_trip_2() {
     std::string input = "mississippi";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    return (recovered == input);
+    if (recovered != input) {
+        return TestResult(false, "Expected \"" + input + "\", got \"" + recovered + "\"");
+    }
+    return TestResult(true);
 }
 
 // Test empty string
-bool test_empty_string() {
+TestResult test_empty_string() {
     std::string input = "";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    return (recovered == input);
+    if (recovered != input) {
+        return TestResult(false, "Expected empty string, got \"" + recovered + "\"");
+    }
+    return TestResult(true);
 }
 
 // Test single character
-bool test_single_char() {
+TestResult test_single_char() {
     std::string input = "a";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    return (recovered == input);
+    if (recovered != input) {
+        return TestResult(false, "Expected \"" + input + "\", got \"" + recovered + "\"");
+    }
+    return TestResult(true);
 }
 
 // Test repeated characters
-bool test_repeated_chars() {
+TestResult test_repeated_chars() {
     std::string input = "aaaa";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    return (recovered == input);
+    if (recovered != input) {
+        return TestResult(false, "Expected \"" + input + "\", got \"" + recovered + "\"");
+    }
+    return TestResult(true);
 }
 
 // Test string with special characters
-bool test_special_chars() {
+TestResult test_special_chars() {
     std::string input = "a!b@c#";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    return (recovered == input);
+    if (recovered != input) {
+        return TestResult(false, "Expected \"" + input + "\", got \"" + recovered + "\"");
+    }
+    return TestResult(true);
 }
 
 // Test custom delimiter
-bool test_custom_delimiter() {
+TestResult test_custom_delimiter() {
     std::string input = "test";
     char delimiter = '$';
     std::string bwt = bwt_forward(input, delimiter);
     std::string recovered = bwt_inverse(bwt, delimiter);
-    return (recovered == input);
+    if (recovered != input) {
+        return TestResult(false, "Expected \"" + input + "\", got \"" + recovered + "\"");
+    }
+    return TestResult(true);
 }
 
 // Test longer string
-bool test_longer_string() {
+TestResult test_longer_string() {
     std::string input = "the quick brown fox jumps over the lazy dog";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    return (recovered == input);
+    if (recovered != input) {
+        return TestResult(false, "Round-trip failed: recovered string does not match input");
+    }
+    return TestResult(true);
 }
 
 // Test string with newlines
-bool test_with_newlines() {
+TestResult test_with_newlines() {
     std::string input = "line1\nline2\nline3";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    return (recovered == input);
+    if (recovered != input) {
+        return TestResult(false, "Round-trip failed: recovered string does not match input");
+    }
+    return TestResult(true);
 }
 
 int main() {
@@ -133,9 +183,9 @@ int main() {
     int failed_count = 0;
     
     for (const auto& test_case : tests) {
-        bool passed = test_case.test_func();
-        run_test(test_case.name, passed);
-        if (passed) {
+        TestResult result = test_case.test_func();
+        run_test(test_case.name, result);
+        if (result.passed) {
             passed_count++;
         } else {
             failed_count++;
