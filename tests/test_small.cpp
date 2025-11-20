@@ -78,15 +78,18 @@ int main() {
     // Define all test cases with their input data
     std::vector<TestCase> test_cases = {
         make_test_case("Forward BWT: basic string (with known result)", "banana", '~', "bnn~aaa"),
-        make_test_case("Round-trip: hello", "hello"),
-        make_test_case("Round-trip: mississippi", "mississippi"),
-        make_test_case("Round-trip: empty string", ""),
-        make_test_case("Round-trip: single character", "a"),
-        make_test_case("Round-trip: repeated characters", "aaaa"),
-        make_test_case("Round-trip: special characters", "a!b@c#"),
-        make_test_case("Round-trip: custom delimiter", "test", '$'),
-        make_test_case("Round-trip: longer string", "the quick brown fox jumps over the lazy dog"),
-        make_test_case("Round-trip: string with newlines", "line1\nline2\nline3")
+        make_test_case("Forward BWT: hello", "hello", '~', "h~ello"),
+        make_test_case("Forward BWT: mississippi", "mississippi", '~', "ssmp~pissiii"),
+        make_test_case("Forward BWT: empty string", "", '~', "~"),
+        make_test_case("Forward BWT: single character", "a", '~', "~a"),
+        make_test_case("Forward BWT: repeated characters", "aaaa", '~', "~aaaa"),
+        make_test_case("Forward BWT: special characters", "a!b@c#", '~', "acb~!@#"),
+        make_test_case("Forward BWT: custom delimiter", "test", '$', "ttes$"),
+        make_test_case("Forward BWT: longer string", 
+                       "the quick brown fox jumps over the lazy dog", '~', 
+                       "kynxeserl i hhv ottu c uwd rfm ebp ~qjooozag"),
+        make_test_case("Forward BWT: string with newlines", 
+                       "line1\nline2\nline3", '~', "12eeennnlll~\n\niii3")
     };
     
     // Run all tests and track results
