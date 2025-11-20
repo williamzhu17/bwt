@@ -1,0 +1,163 @@
+===========================================
+BWT Roundtrip Performance Test Results
+Date: Wed Nov 19 20:55:59 PST 2025
+Input file: data/large_text/kjv_bible.txt
+Input file size: 4356024 bytes
+===========================================
+
+----------------------------------------
+Implementation: cpp
+Block Size: 64 bytes
+Forward BWT:
+  Wall time: .857015000s
+  Output size: 4424087 bytes
+Inverse BWT:
+  Wall time: 12.933235000s
+  Output size: 4356024 bytes
+Total roundtrip time: 13.790250000s
+Roundtrip: PASS
+Compression ratio: 1.0156
+
+----------------------------------------
+Implementation: py
+Block Size: 64 bytes
+Forward BWT:
+  Wall time: .907538000s
+  Output size: 4424087 bytes
+Inverse BWT:
+  Wall time: 25.403417000s
+  Output size: 4356024 bytes
+Total roundtrip time: 26.310955000s
+Roundtrip: PASS
+Compression ratio: 1.0156
+
+----------------------------------------
+Implementation: cpp
+Block Size: 128 bytes
+Forward BWT:
+  Wall time: .695725000s
+  Output size: 4390056 bytes
+Inverse BWT:
+  Wall time: 28.204523000s
+  Output size: 4356024 bytes
+Total roundtrip time: 28.900248000s
+Roundtrip: PASS
+Compression ratio: 1.0078
+
+----------------------------------------
+Implementation: py
+Block Size: 128 bytes
+Forward BWT:
+  Wall time: 1.043791000s
+  Output size: 4390056 bytes
+Inverse BWT:
+  Wall time: 50.757367000s
+  Output size: 4356024 bytes
+Total roundtrip time: 51.801158000s
+Roundtrip: PASS
+Compression ratio: 1.0078
+
+----------------------------------------
+Implementation: cpp
+Block Size: 256 bytes
+Forward BWT:
+  Wall time: .814384000s
+  Output size: 4373040 bytes
+Inverse BWT:
+  Wall time: 63.540760000s
+  Output size: 4356024 bytes
+Total roundtrip time: 64.355144000s
+Roundtrip: PASS
+Compression ratio: 1.0039
+
+----------------------------------------
+Implementation: py
+Block Size: 256 bytes
+Forward BWT:
+  Wall time: 1.006268000s
+  Output size: 4373040 bytes
+Inverse BWT:
+  Wall time: 113.379160000s
+  Output size: 4356024 bytes
+Total roundtrip time: 114.385428000s
+Roundtrip: PASS
+Compression ratio: 1.0039
+
+----------------------------------------
+Implementation: cpp
+Block Size: 512 bytes
+Forward BWT:
+  Wall time: .890288000s
+  Output size: 4364532 bytes
+Inverse BWT:
+  Wall time: 179.416512000s
+  Output size: 4356024 bytes
+Total roundtrip time: 180.306800000s
+Roundtrip: PASS
+Compression ratio: 1.0019
+
+----------------------------------------
+Implementation: py
+Block Size: 512 bytes
+Forward BWT:
+  Wall time: 1.559964000s
+  Output size: 4364532 bytes
+Inverse BWT:
+  Wall time: 270.589229000s
+  Output size: 4356024 bytes
+Total roundtrip time: 272.149193000s
+Roundtrip: PASS
+Compression ratio: 1.0019
+
+----------------------------------------
+Implementation: cpp
+Block Size: 1024 bytes
+Forward BWT:
+  Wall time: .973258000s
+  Output size: 4360278 bytes
+Inverse BWT:
+  Wall time: 479.223076000s
+  Output size: 4356024 bytes
+Total roundtrip time: 480.196334000s
+Roundtrip: PASS
+Compression ratio: 1.0009
+
+----------------------------------------
+Implementation: py
+Block Size: 1024 bytes
+Forward BWT:
+  Wall time: 1.615084000s
+  Output size: 4360278 bytes
+Inverse BWT:
+  Wall time: 732.906528000s
+  Output size: 4356024 bytes
+Total roundtrip time: 734.521612000s
+Roundtrip: PASS
+Compression ratio: 1.0009
+
+----------------------------------------
+Implementation: cpp
+Block Size: 2048 bytes
+Forward BWT:
+  Wall time: 1.198263000s
+  Output size: 4358151 bytes
+Inverse BWT:
+  Wall time: 1174.528498000s
+  Output size: 4356024 bytes
+Total roundtrip time: 1175.726761000s
+Roundtrip: PASS
+Compression ratio: 1.0004
+
+----------------------------------------
+Implementation: py
+Block Size: 2048 bytes
+Forward BWT:
+  Wall time: 1.855143000s
+  Output size: 4358151 bytes
+Inverse BWT:
+  Wall time: 1846.720148000s
+  Output size: 4356024 bytes
+Total roundtrip time: 1848.575291000s
+Roundtrip: PASS
+Compression ratio: 1.0004
+
