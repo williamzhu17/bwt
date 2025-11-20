@@ -1,20 +1,17 @@
 #include <iostream>
-#include <iomanip>
-#include <sstream>
 #include <string>
 #include <vector>
-#include <fstream>
 #include <cstdio>
 #include <algorithm>
 #include <chrono>
 #include <numeric>
 #include <cmath>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
 #include "../src/file_processor.hpp"
 #include "../src/bwt.hpp"
 #include "../src/inverse_bwt.hpp"
+#include "../util/file_utils.hpp"
+#include "../util/format_utils.hpp"
+#include "../util/test_utils.hpp"
 
 // Configuration
 const int NUM_TRIALS = 5;  // Number of times to run each test
@@ -62,49 +59,16 @@ private:
     }
 };
 
-// Test case structure
-struct PerformanceTestCase {
-    std::string name;
-    std::string input_file;
-    size_t block_size;
-    char delimiter;
-};
-
-// Helper function to create directory if it doesn't exist
-bool create_directory(const std::string& dir_path) {
-    struct stat st;
-    if (stat(dir_path.c_str(), &st) == 0) {
-        return S_ISDIR(st.st_mode);
-    }
-    return mkdir(dir_path.c_str(), 0755) == 0;
-}
-
-// Helper function to check if a file exists
-bool file_exists(const std::string& filename) {
-    struct stat buffer;
-    return (stat(filename.c_str(), &buffer) == 0);
-}
-
-// Helper function to get file size
-size_t get_file_size(const std::string& filename) {
-    struct stat buffer;
-    if (stat(filename.c_str(), &buffer) != 0) {
-        return 0;
-    }
-    return buffer.st_size;
-}
-
 // Performance test function - runs forward and inverse BWT and measures time
 PerformanceMetrics run_performance_test(const std::string& input_file, 
                                         size_t block_size, 
-                                        char delimiter,
                                         int num_trials) {
     PerformanceMetrics metrics;
     metrics.input_size = get_file_size(input_file);
     
     // Generate temporary file names
-    std::string forward_file = "tmp/perf_forward.bwt";
-    std::string recovered_file = "tmp/perf_recovered.txt";
+    std::string forward_file = "build/tmp/perf_forward.bwt";
+    std::string recovered_file = "build/tmp/perf_recovered.txt";
     
     // Run multiple trials
     for (int trial = 0; trial < num_trials; trial++) {
@@ -114,24 +78,13 @@ PerformanceMetrics run_performance_test(const std::string& input_file,
         
         // Forward BWT with timing
         auto forward_start = std::chrono::high_resolution_clock::now();
-        {
-            FileProcessor processor(input_file, forward_file, block_size);
-            if (!processor.is_open()) {
-                std::cerr << "Failed to open files for forward BWT" << std::endl;
-                return metrics;
-            }
-            
-            while (processor.has_more_data()) {
-                std::string chunk = processor.read_chunk();
-                if (chunk.empty()) {
-                    break;
-                }
-                
-                std::string transformed = bwt_forward(chunk, delimiter);
-                processor.write_chunk(transformed);
-            }
-        }
+        int forward_result = bwt_forward_process_file(input_file.c_str(), forward_file.c_str(), block_size);
         auto forward_end = std::chrono::high_resolution_clock::now();
+        
+        if (forward_result != 0) {
+            std::cerr << "Failed to process forward BWT" << std::endl;
+            return metrics;
+        }
         
         // Record forward time
         std::chrono::duration<double> forward_duration = forward_end - forward_start;
@@ -144,24 +97,13 @@ PerformanceMetrics run_performance_test(const std::string& input_file,
         
         // Inverse BWT with timing
         auto inverse_start = std::chrono::high_resolution_clock::now();
-        {
-            FileProcessor processor(forward_file, recovered_file, block_size + 1);
-            if (!processor.is_open()) {
-                std::cerr << "Failed to open files for inverse BWT" << std::endl;
-                return metrics;
-            }
-            
-            while (processor.has_more_data()) {
-                std::string chunk = processor.read_chunk();
-                if (chunk.empty()) {
-                    break;
-                }
-                
-                std::string recovered = bwt_inverse(chunk, delimiter);
-                processor.write_chunk(recovered);
-            }
-        }
+        int inverse_result = bwt_inverse_process_file(forward_file.c_str(), recovered_file.c_str(), block_size);
         auto inverse_end = std::chrono::high_resolution_clock::now();
+        
+        if (inverse_result != 0) {
+            std::cerr << "Failed to process inverse BWT" << std::endl;
+            return metrics;
+        }
         
         // Record inverse time
         std::chrono::duration<double> inverse_duration = inverse_end - inverse_start;
@@ -179,38 +121,6 @@ PerformanceMetrics run_performance_test(const std::string& input_file,
     metrics.calculate_statistics();
     
     return metrics;
-}
-
-// Helper function to format time with appropriate units
-std::string format_time(double seconds) {
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(4);
-    
-    if (seconds < 0.001) {
-        oss << (seconds * 1000000) << " μs";
-    } else if (seconds < 1.0) {
-        oss << (seconds * 1000) << " ms";
-    } else {
-        oss << seconds << " s";
-    }
-    
-    return oss.str();
-}
-
-// Helper function to format file size
-std::string format_size(size_t bytes) {
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(2);
-    
-    if (bytes < 1024) {
-        oss << bytes << " B";
-    } else if (bytes < 1024 * 1024) {
-        oss << (bytes / 1024.0) << " KB";
-    } else {
-        oss << (bytes / (1024.0 * 1024.0)) << " MB";
-    }
-    
-    return oss.str();
 }
 
 // Print performance results
@@ -279,54 +189,6 @@ void print_performance_results(const std::string& test_name,
     std::cout << std::string(70, '=') << std::endl;
 }
 
-// Helper function to list all files in a directory
-std::vector<std::string> list_files_in_directory(const std::string& dir_path) {
-    std::vector<std::string> files;
-    DIR* dir = opendir(dir_path.c_str());
-    
-    if (dir == nullptr) {
-        std::cerr << "Warning: Could not open directory: " << dir_path << std::endl;
-        return files;
-    }
-    
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != nullptr) {
-        if (std::string(entry->d_name) == "." || std::string(entry->d_name) == "..") {
-            continue;
-        }
-        
-        std::string full_path = dir_path + "/" + entry->d_name;
-        struct stat st;
-        if (stat(full_path.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
-            files.push_back(entry->d_name);
-        }
-    }
-    
-    closedir(dir);
-    return files;
-}
-
-// Generate test cases for all files in a directory with specified block sizes
-std::vector<PerformanceTestCase> generate_test_cases(const std::string& data_dir, 
-                                                     const std::vector<size_t>& block_sizes,
-                                                     char delimiter = '~') {
-    std::vector<PerformanceTestCase> test_cases;
-    std::vector<std::string> files = list_files_in_directory(data_dir);
-    
-    // Sort files for consistent test ordering
-    std::sort(files.begin(), files.end());
-    
-    for (const auto& filename : files) {
-        for (size_t block_size : block_sizes) {
-            std::string test_name = filename;
-            std::string file_path = data_dir + "/" + filename;
-            test_cases.push_back({test_name, file_path, block_size, delimiter});
-        }
-    }
-    
-    return test_cases;
-}
-
 int main(int argc, char* argv[]) {
     std::cout << "\n" << std::string(70, '=') << std::endl;
     std::cout << "BWT Performance Benchmark - Canterbury Corpus" << std::endl;
@@ -344,27 +206,26 @@ int main(int argc, char* argv[]) {
     
     std::cout << "Number of trials per test: " << num_trials << std::endl;
     
-    // Create tmp directory for temporary files
-    if (!create_directory("tmp")) {
-        std::cerr << "Error: Failed to create tmp directory" << std::endl;
+    // Create build/tmp directory for temporary files
+    if (!create_directory("build/tmp")) {
+        std::cerr << "Error: Failed to create build/tmp directory" << std::endl;
         return 1;
     }
     
     // Define the data directory and block sizes to test
-    std::string data_dir = "../data/canterbury_corpus";
+    std::string data_dir = "data/canterbury_corpus";
     // std::vector<size_t> block_sizes = {128, 256, 512, 1024};
     std::vector<size_t> block_sizes = {128};
     
     // Check if data directory exists
-    struct stat st;
-    if (stat(data_dir.c_str(), &st) != 0 || !S_ISDIR(st.st_mode)) {
+    if (!directory_exists(data_dir)) {
         std::cerr << "Error: Data directory not found: " << data_dir << std::endl;
         return 1;
     }
     
     // Generate test cases
     std::cout << "Scanning directory: " << data_dir << std::endl;
-    std::vector<PerformanceTestCase> test_cases = generate_test_cases(data_dir, block_sizes, '~');
+    std::vector<FileTestCase> test_cases = generate_file_test_cases(data_dir, block_sizes, false);
     
     if (test_cases.empty()) {
         std::cerr << "Error: No test cases generated. Check if data directory contains files." << std::endl;
@@ -394,7 +255,6 @@ int main(int argc, char* argv[]) {
         PerformanceMetrics metrics = run_performance_test(
             test_case.input_file,
             test_case.block_size,
-            test_case.delimiter,
             num_trials
         );
         

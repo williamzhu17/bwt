@@ -11,8 +11,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-CXX_BWT="src/bwt"
-CXX_INVERSE_BWT="src/inverse_bwt"
+CXX_BWT="build/bwt"
+CXX_INVERSE_BWT="build/inverse_bwt"
 PY_BWT="src/bwt.py"
 PY_INVERSE_BWT="src/inverse_bwt.py"
 
@@ -29,10 +29,13 @@ LOG_FILE="${2:-roundtrip_performance.log}"
 
 # Generate temp file names based on input file basename
 INPUT_BASENAME=$(basename "$INPUT_FILE")
-TEMP_CXX_BWT="temp_${INPUT_BASENAME}_cpp_bwt.txt"
-TEMP_CXX_RESTORED="temp_${INPUT_BASENAME}_cpp_restored.txt"
-TEMP_PY_BWT="temp_${INPUT_BASENAME}_py_bwt.txt"
-TEMP_PY_RESTORED="temp_${INPUT_BASENAME}_py_restored.txt"
+TEMP_CXX_BWT="build/tmp/temp_${INPUT_BASENAME}_cpp_bwt.txt"
+TEMP_CXX_RESTORED="build/tmp/temp_${INPUT_BASENAME}_cpp_restored.txt"
+TEMP_PY_BWT="build/tmp/temp_${INPUT_BASENAME}_py_bwt.txt"
+TEMP_PY_RESTORED="build/tmp/temp_${INPUT_BASENAME}_py_restored.txt"
+
+# Ensure build/tmp exists
+mkdir -p build/tmp
 
 # Block sizes to test
 BLOCK_SIZES=(64 128 256 512 1024 2048 4096 8192 32768 65536)

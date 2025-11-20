@@ -33,27 +33,10 @@ std::string bwt_forward(const std::string& input, char delimiter) {
     return bwt_str;
 }
 
-#ifndef BUILD_TESTS
-int main(int argc, char* argv[]) {
-    // Check for command line arguments
-    if (argc < 3 || argc > 4) {
-        std::cerr << "Usage: " << argv[0] << " <input_file> <output_file> [block_size]" << std::endl;
-        std::cerr << "  block_size: size of each block in bytes (default: 65536)" << std::endl;
-        return 1;
-    }
-    
-    // Parse block size (default 128B)
-    size_t block_size = 128;
-    if (argc == 4) {
-        block_size = std::stoul(argv[3]);
-        if (block_size == 0) {
-            std::cerr << "Error: Block size must be greater than 0" << std::endl;
-            return 1;
-        }
-    }
-    
+// Process file with forward BWT transform
+int bwt_forward_process_file(const char* input_file, const char* output_file, size_t block_size) {
     // Create FileProcessor to handle file I/O
-    FileProcessor processor(argv[1], argv[2], block_size);
+    FileProcessor processor(input_file, output_file, block_size);
     
     if (!processor.is_open()) {
         return 1;
@@ -77,5 +60,28 @@ int main(int argc, char* argv[]) {
     
     processor.close();
     return 0;
+}
+
+#ifndef BUILD_TESTS
+int main(int argc, char* argv[]) {
+    // Check for command line arguments
+    if (argc < 3 || argc > 4) {
+        std::cerr << "Usage: " << argv[0] << " <input_file> <output_file> [block_size]" << std::endl;
+        std::cerr << "  block_size: size of each block in bytes (default: 65536)" << std::endl;
+        return 1;
+    }
+    
+    // Parse block size (default 128B)
+    size_t block_size = 128;
+    if (argc == 4) {
+        block_size = std::stoul(argv[3]);
+        if (block_size == 0) {
+            std::cerr << "Error: Block size must be greater than 0" << std::endl;
+            return 1;
+        }
+    }
+    
+    // Process the file
+    return bwt_forward_process_file(argv[1], argv[2], block_size);
 }
 #endif // BUILD_TESTS
