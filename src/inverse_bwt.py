@@ -2,7 +2,7 @@
 import sys
 import argparse
 
-def inverse(transformed: str, delimiter: str = '$') -> str:
+def inverse(transformed: str, delimiter: str) -> str:
     """
     Reconstruct the original string from its BWT transform using the LF-mapping
     described in Ben Langmead's thesis (S := cS; r := LF(r)).
@@ -63,6 +63,14 @@ def main():
     
     try:
         with open(args.input_file, 'rb') as infile, open(args.output_file, 'wb') as outfile:
+            # Read delimiter from first byte
+            delimiter_byte = infile.read(1)
+            if len(delimiter_byte) == 0:
+                print("Error: Empty input file", file=sys.stderr)
+                return 1
+            
+            delimiter = chr(delimiter_byte[0])
+            
             while True:
                 # Read a chunk (size block_size + 1 to account for delimiter)
                 chunk = infile.read(bwt_chunk_size)
@@ -74,7 +82,7 @@ def main():
                 chunk_str = chunk.decode('latin-1')
                 
                 # Apply inverse transform to this chunk and write
-                result = inverse(chunk_str)
+                result = inverse(chunk_str, delimiter)
                 outfile.write(result.encode('latin-1'))
     
     except FileNotFoundError as e:

@@ -7,6 +7,41 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
+#include <unordered_set>
+
+// Find a byte value (0-255) that does not appear in the file.
+// Returns the first unused byte value, or -1 if all 256 values are used.
+int find_unique_char(const char* file_path) {
+    std::unordered_set<unsigned char> used_bytes;
+    const size_t chunk_size = 8192;  // 8KB chunks
+    
+    std::ifstream file(file_path, std::ios::binary);
+    if (!file.is_open()) {
+        return -1;
+    }
+    
+    // Read file in chunks and track which bytes appear
+    std::vector<char> buffer(chunk_size);
+    while (file.good()) {
+        file.read(buffer.data(), chunk_size);
+        size_t bytes_read = file.gcount();
+        
+        for (size_t i = 0; i < bytes_read; ++i) {
+            used_bytes.insert(static_cast<unsigned char>(buffer[i]));
+        }
+    }
+    file.close();
+    
+    // Find the first unused byte value (0-255)
+    for (int byte_val = 0; byte_val < 256; ++byte_val) {
+        if (used_bytes.find(static_cast<unsigned char>(byte_val)) == used_bytes.end()) {
+            return byte_val;
+        }
+    }
+    
+    // All 256 byte values are used (extremely rare)
+    return -1;
+}
 
 // Forward BWT transform
 std::string bwt_forward(const std::string& input, char delimiter) {
@@ -35,6 +70,16 @@ std::string bwt_forward(const std::string& input, char delimiter) {
 
 // Process file with forward BWT transform
 int bwt_forward_process_file(const char* input_file, const char* output_file, size_t block_size) {
+    // Find unique delimiter
+    int delimiter_byte = find_unique_char(input_file);
+    
+    if (delimiter_byte == -1) {
+        std::cerr << "Error: Cannot find a unique delimiter (all 256 byte values appear in file)" << std::endl;
+        return 1;
+    }
+    
+    char delimiter = static_cast<char>(delimiter_byte);
+    
     // Create FileProcessor to handle file I/O
     FileProcessor processor(input_file, output_file, block_size);
     
@@ -42,9 +87,11 @@ int bwt_forward_process_file(const char* input_file, const char* output_file, si
         return 1;
     }
     
-    // Process file in chunks
-    char delimiter = '$';
+    // Write delimiter byte as first byte of output file
+    std::string delimiter_str(1, delimiter);
+    processor.write_chunk(delimiter_str);
     
+    // Process file in chunks
     while (processor.has_more_data()) {
         // Read a chunk
         std::string chunk = processor.read_chunk();

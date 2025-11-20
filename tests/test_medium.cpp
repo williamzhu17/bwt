@@ -58,7 +58,8 @@ TestResult test_file_round_trip(const std::string& test_name, const std::string&
     }
     
     size_t forward_size = get_file_size(forward_file);
-    size_t expected_forward_size = original_size;
+    // we also encode the delimiter as the first character, so forward will have one more byte
+    size_t expected_forward_size = original_size + 1;
     // Calculate expected size: each block adds 1 delimiter
     size_t num_blocks = (original_size + block_size - 1) / block_size;
     expected_forward_size += num_blocks;
