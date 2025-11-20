@@ -1,8 +1,16 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+#include <vector>
+#include <functional>
 #include "../src/bwt.hpp"
 #include "../src/inverse_bwt.hpp"
+
+// Test case structure
+struct TestCase {
+    std::string name;
+    std::function<bool()> test_func;
+};
 
 // Helper function to run a test and report results
 void run_test(const std::string& test_name, bool passed) {
@@ -11,124 +19,121 @@ void run_test(const std::string& test_name, bool passed) {
 }
 
 // Test forward BWT on a simple string
-void test_forward_basic() {
+bool test_forward_basic() {
     std::string input = "banana";
     std::string result = bwt_forward(input);
     // Expected: "annb~aa" (last column of sorted rotations)
     // Let's verify it's the correct length and contains expected characters
-    assert(result.length() == input.length() + 1); // +1 for delimiter
-    assert(result.find('~') != std::string::npos); // Should contain delimiter
-    run_test("Forward BWT: basic string", true);
+    return (result.length() == input.length() + 1) && // +1 for delimiter
+           (result.find('~') != std::string::npos); // Should contain delimiter
 }
 
 // Test inverse BWT on a known BWT string
-void test_inverse_basic() {
+bool test_inverse_basic() {
     // For "banana", the BWT should be reversible
     std::string input = "banana";
     std::string bwt_result = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt_result);
-    assert(recovered == input);
-    run_test("Inverse BWT: basic string", true);
+    return (recovered == input);
 }
 
 // Test round-trip: forward then inverse should return original
-void test_round_trip() {
+bool test_round_trip() {
     std::string input = "hello";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    assert(recovered == input);
-    run_test("Round-trip: hello", true);
+    return (recovered == input);
 }
 
 // Test round-trip with different string
-void test_round_trip_2() {
+bool test_round_trip_2() {
     std::string input = "mississippi";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    assert(recovered == input);
-    run_test("Round-trip: mississippi", true);
+    return (recovered == input);
 }
 
 // Test empty string
-void test_empty_string() {
+bool test_empty_string() {
     std::string input = "";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    assert(recovered == input);
-    run_test("Round-trip: empty string", true);
+    return (recovered == input);
 }
 
 // Test single character
-void test_single_char() {
+bool test_single_char() {
     std::string input = "a";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    assert(recovered == input);
-    run_test("Round-trip: single character", true);
+    return (recovered == input);
 }
 
 // Test repeated characters
-void test_repeated_chars() {
+bool test_repeated_chars() {
     std::string input = "aaaa";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    assert(recovered == input);
-    run_test("Round-trip: repeated characters", true);
+    return (recovered == input);
 }
 
 // Test string with special characters
-void test_special_chars() {
+bool test_special_chars() {
     std::string input = "a!b@c#";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    assert(recovered == input);
-    run_test("Round-trip: special characters", true);
+    return (recovered == input);
 }
 
 // Test custom delimiter
-void test_custom_delimiter() {
+bool test_custom_delimiter() {
     std::string input = "test";
     char delimiter = '$';
     std::string bwt = bwt_forward(input, delimiter);
     std::string recovered = bwt_inverse(bwt, delimiter);
-    assert(recovered == input);
-    run_test("Round-trip: custom delimiter", true);
+    return (recovered == input);
 }
 
 // Test longer string
-void test_longer_string() {
+bool test_longer_string() {
     std::string input = "the quick brown fox jumps over the lazy dog";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    assert(recovered == input);
-    run_test("Round-trip: longer string", true);
+    return (recovered == input);
 }
 
 // Test string with newlines
-void test_with_newlines() {
+bool test_with_newlines() {
     std::string input = "line1\nline2\nline3";
     std::string bwt = bwt_forward(input);
     std::string recovered = bwt_inverse(bwt);
-    assert(recovered == input);
-    run_test("Round-trip: string with newlines", true);
+    return (recovered == input);
 }
 
 int main() {
     std::cout << "Running BWT tests...\n" << std::endl;
     
-    test_forward_basic();
-    test_inverse_basic();
-    test_round_trip();
-    test_round_trip_2();
-    test_empty_string();
-    test_single_char();
-    test_repeated_chars();
-    test_special_chars();
-    test_custom_delimiter();
-    test_longer_string();
-    test_with_newlines();
+    // Register all tests with their names
+    std::vector<TestCase> tests = {
+        {"Forward BWT: basic string", test_forward_basic},
+        {"Inverse BWT: basic string", test_inverse_basic},
+        {"Round-trip: hello", test_round_trip},
+        {"Round-trip: mississippi", test_round_trip_2},
+        {"Round-trip: empty string", test_empty_string},
+        {"Round-trip: single character", test_single_char},
+        {"Round-trip: repeated characters", test_repeated_chars},
+        {"Round-trip: special characters", test_special_chars},
+        {"Round-trip: custom delimiter", test_custom_delimiter},
+        {"Round-trip: longer string", test_longer_string},
+        {"Round-trip: string with newlines", test_with_newlines}
+    };
+    
+    // Run all tests
+    for (const auto& test_case : tests) {
+        bool passed = test_case.test_func();
+        run_test(test_case.name, passed);
+    }
     
     std::cout << "\nAll tests passed!" << std::endl;
     return 0;
 }
-
