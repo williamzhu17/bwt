@@ -1,4 +1,5 @@
 #include "inverse_bwt.hpp"
+#include "file_processor.hpp"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -44,7 +45,7 @@ int main(int argc, char* argv[]) {
     // Check for command line arguments
     if (argc < 3 || argc > 4) {
         std::cerr << "Usage: " << argv[0] << " <input_file> <output_file> [block_size]" << std::endl;
-        std::cerr << "  block_size: size of each block in bytes (default: 65536)" << std::endl;
+        std::cerr << "  block_size: size of each block in bytes (default: 128)" << std::endl;
         return 1;
     }
     
@@ -58,44 +59,34 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    // Open input file
-    std::ifstream file(argv[1], std::ios::binary);
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open input file " << argv[1] << std::endl;
-        return 1;
-    }
+    // Note: Forward BWT outputs chunks of size (input_size + 1) due to delimiter
+    // So we need to read chunks of size (block_size + 1) to match
+    size_t bwt_chunk_size = block_size + 1;
     
-    // Open output file
-    std::ofstream out_file(argv[2], std::ios::binary);
-    if (!out_file.is_open()) {
-        std::cerr << "Error: Could not open output file " << argv[2] << std::endl;
-        file.close();
+    // Create FileProcessor to handle file I/O
+    FileProcessor processor(argv[1], argv[2], bwt_chunk_size);
+    
+    if (!processor.is_open()) {
         return 1;
     }
     
     // Process file in chunks
-    // Note: Forward BWT outputs chunks of size (input_size + 1) due to delimiter
-    // So we need to read chunks of size (block_size + 1) to match
-    size_t bwt_chunk_size = block_size + 1;
-    std::vector<char> buffer(bwt_chunk_size);
     char delimiter = '~';
     
-    while (file.good()) {
+    while (processor.has_more_data()) {
         // Read a chunk (size block_size + 1 to account for delimiter)
-        file.read(buffer.data(), bwt_chunk_size);
-        size_t bytes_read = file.gcount();
+        std::string chunk = processor.read_chunk();
         
-        if (bytes_read == 0) {
+        if (chunk.empty()) {
             break;
         }
         
-        std::string chunk(buffer.data(), bytes_read);
+        // Apply inverse BWT and write result
         std::string result = bwt_inverse(chunk, delimiter);
-        out_file.write(result.c_str(), result.length());
+        processor.write_chunk(result);
     }
     
-    file.close();
-    out_file.close();
+    processor.close();
     return 0;
 }
 #endif // BUILD_TESTS

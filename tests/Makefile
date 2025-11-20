@@ -8,10 +8,10 @@ SRC_DIR = ../src
 TEST_DIR = .
 
 # Source files to compile (without main functions)
-SRC_FILES = $(SRC_DIR)/bwt.cpp $(SRC_DIR)/inverse_bwt.cpp
+SRC_FILES = $(SRC_DIR)/bwt.cpp $(SRC_DIR)/inverse_bwt.cpp $(SRC_DIR)/file_processor.cpp
 
 # Object files
-OBJ_FILES = bwt.o inverse_bwt.o
+OBJ_FILES = bwt.o inverse_bwt.o file_processor.o
 
 # Find all test .cpp files
 TEST_SOURCES = $(wildcard *.cpp)
@@ -27,6 +27,7 @@ $(OBJ_FILES): $(SRC_FILES)
 	@echo "Building object files from source..."
 	@$(CXX) $(CXXFLAGS) -c $(SRC_DIR)/bwt.cpp -o bwt.o
 	@$(CXX) $(CXXFLAGS) -c $(SRC_DIR)/inverse_bwt.cpp -o inverse_bwt.o
+	@$(CXX) $(CXXFLAGS) -c $(SRC_DIR)/file_processor.cpp -o file_processor.o
 
 # Pattern rule to build test executables
 # Each test links against the object files

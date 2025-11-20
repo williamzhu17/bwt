@@ -3,26 +3,33 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -O3
 LDFLAGS = 
 
-# Find all .cpp files in current directory
-SOURCES = $(wildcard *.cpp)
+# Executables with main() functions
+EXECUTABLES = bwt inverse_bwt
 
-# Create executable names (remove .cpp extension) - same directory as source files
-EXECUTABLES = $(SOURCES:%.cpp=%)
+# Object files that are shared/library code
+SHARED_OBJS = file_processor.o
 
 # Default target: build all executables
-# Use -k flag to continue building even if one fails
-all:
-	@$(MAKE) -k $(EXECUTABLES) || true
+all: $(EXECUTABLES)
 
-# Pattern rule to build executables from .cpp files
-# Note: Only files with main() function can be compiled as executables
-%: %.cpp
+# Build bwt executable (depends on file_processor)
+bwt: bwt.cpp file_processor.o
 	@echo "Building $@ from $<"
-	@$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS) 2>&1 || echo "Warning: $@ failed to build (may not have main() function)"
+	$(CXX) $(CXXFLAGS) bwt.cpp file_processor.o -o $@ $(LDFLAGS)
+
+# Build inverse_bwt executable (depends on file_processor)
+inverse_bwt: inverse_bwt.cpp file_processor.o
+	@echo "Building $@ from $<"
+	$(CXX) $(CXXFLAGS) inverse_bwt.cpp file_processor.o -o $@ $(LDFLAGS)
+
+# Build file_processor object file
+file_processor.o: file_processor.cpp file_processor.hpp
+	@echo "Building object file $@"
+	$(CXX) $(CXXFLAGS) -c file_processor.cpp -o $@
 
 # Clean target
 clean:
-	rm -f $(EXECUTABLES)
+	rm -f $(EXECUTABLES) $(SHARED_OBJS)
 
 # Rebuild everything
 rebuild: clean all
