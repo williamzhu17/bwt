@@ -13,13 +13,13 @@ BUILD_DIR := build
 INCLUDES := -I$(SRC_DIR) -I$(UTIL_DIR)
 
 # Main Executables
-BWT_EXEC := bwt
-INV_BWT_EXEC := inverse_bwt
+BWT_EXEC := $(BUILD_DIR)/bwt
+INV_BWT_EXEC := $(BUILD_DIR)/inverse_bwt
 MAIN_EXECS := $(BWT_EXEC) $(INV_BWT_EXEC)
 
 # Test Executables
-TEST_EXECS := test_small test_medium
-PERF_EXECS := performance_medium
+TEST_EXECS := $(BUILD_DIR)/test_small $(BUILD_DIR)/test_medium
+PERF_EXECS := $(BUILD_DIR)/performance_medium
 
 # Source Files
 UTIL_SRCS := $(wildcard $(UTIL_DIR)/*.cpp)
@@ -55,11 +55,11 @@ $(INV_BWT_EXEC): $(BUILD_DIR)/src/inverse_bwt.o $(PROD_OBJS)
 	@$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 # Build Test Executables
-$(TEST_EXECS): %: $(TEST_DIR)/%.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS)
+$(TEST_EXECS): $(BUILD_DIR)/%: $(TEST_DIR)/%.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS)
 	@echo "Building test $@"
 	@$(CXX) $(CXXFLAGS) -DBUILD_TESTS $(INCLUDES) $^ -o $@ $(LDFLAGS)
 
-$(PERF_EXECS): %: $(TEST_DIR)/%.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS)
+$(PERF_EXECS): $(BUILD_DIR)/%: $(TEST_DIR)/%.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS)
 	@echo "Building benchmark $@"
 	@$(CXX) $(CXXFLAGS) -DBUILD_TESTS $(INCLUDES) $^ -o $@ $(LDFLAGS)
 

@@ -41,9 +41,9 @@ TestResult test_file_round_trip(const std::string& test_name, const std::string&
         }
     }
     
-    // Write temporary files to tmp/ directory
-    std::string forward_file = "tmp/" + safe_name + "_forward";
-    std::string recovered_file = "tmp/" + safe_name + "_recovered";
+    // Write temporary files to build/tmp/ directory
+    std::string forward_file = "build/tmp/" + safe_name + "_forward";
+    std::string recovered_file = "build/tmp/" + safe_name + "_recovered";
     
     // Step 1: Forward BWT using process_file from bwt.hpp
     // Forward BWT is defined in the bwt namespace/compilation unit
@@ -115,12 +115,12 @@ void run_test(const std::string& test_name, const TestResult& result) {
 int main() {
     std::cout << "Running BWT medium file tests...\n" << std::endl;
     
-    // Create tmp directory for test outputs
-    if (!create_directory("tmp")) {
-        std::cerr << "Error: Failed to create tmp directory" << std::endl;
+    // Create build/tmp directory for test outputs
+    if (!create_directory("build/tmp")) {
+        std::cerr << "Error: Failed to create build/tmp directory" << std::endl;
         return 1;
     }
-    std::cout << "Output directory: tmp/" << std::endl;
+    std::cout << "Output directory: build/tmp/" << std::endl;
     std::cout << "All forward and recovered files will be saved for inspection.\n" << std::endl;
     
     // Define the data directory and block sizes to test

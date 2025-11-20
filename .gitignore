@@ -1,17 +1,8 @@
 .vscode/
 build/
 __pycache__/
-tmp/
 
 # Object files
 *.o
-
-# Executables
-src/bwt
-src/inverse_bwt
-tests/test_small
-tests/test_medium
-tests/performance_medium
-tests/*.tmp
 
 .DS_Store

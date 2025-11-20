@@ -67,8 +67,8 @@ PerformanceMetrics run_performance_test(const std::string& input_file,
     metrics.input_size = get_file_size(input_file);
     
     // Generate temporary file names
-    std::string forward_file = "tmp/perf_forward.bwt";
-    std::string recovered_file = "tmp/perf_recovered.txt";
+    std::string forward_file = "build/tmp/perf_forward.bwt";
+    std::string recovered_file = "build/tmp/perf_recovered.txt";
     
     // Run multiple trials
     for (int trial = 0; trial < num_trials; trial++) {
@@ -206,9 +206,9 @@ int main(int argc, char* argv[]) {
     
     std::cout << "Number of trials per test: " << num_trials << std::endl;
     
-    // Create tmp directory for temporary files
-    if (!create_directory("tmp")) {
-        std::cerr << "Error: Failed to create tmp directory" << std::endl;
+    // Create build/tmp directory for temporary files
+    if (!create_directory("build/tmp")) {
+        std::cerr << "Error: Failed to create build/tmp directory" << std::endl;
         return 1;
     }
     
