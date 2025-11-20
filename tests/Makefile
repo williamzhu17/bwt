@@ -19,8 +19,14 @@ TEST_SOURCES = $(wildcard *.cpp)
 # Create test executable names in desired order (small tests first)
 TEST_EXECUTABLES = test_small test_medium
 
+# Performance benchmark executables
+PERF_EXECUTABLES = performance_medium
+
+# All executables
+ALL_EXECUTABLES = $(TEST_EXECUTABLES) $(PERF_EXECUTABLES)
+
 # Default target: build all test executables
-all: $(TEST_EXECUTABLES)
+all: $(ALL_EXECUTABLES)
 
 # Build object files from source files (with BUILD_TESTS defined to exclude main)
 $(OBJ_FILES): $(SRC_FILES)
@@ -35,14 +41,23 @@ $(OBJ_FILES): $(SRC_FILES)
 	@echo "Building test $@ from $<"
 	@$(CXX) $(CXXFLAGS) -I$(SRC_DIR) $< $(OBJ_FILES) -o $@ $(LDFLAGS)
 
-# Run all tests
-test: all
-	@echo "\n=== Running all tests ==="
+# Run correctness tests only
+test: $(TEST_EXECUTABLES)
+	@echo "\n=== Running correctness tests ==="
 	@for test in $(TEST_EXECUTABLES); do \
 		echo "\n--- Running $$test ---"; \
 		./$$test || exit 1; \
 	done
 	@echo "\n=== All tests passed! ==="
+
+# Run performance benchmarks
+performance: $(PERF_EXECUTABLES)
+	@echo "\n=== Running performance benchmarks ==="
+	@for perf in $(PERF_EXECUTABLES); do \
+		echo "\n--- Running $$perf ---"; \
+		./$$perf || exit 1; \
+	done
+	@echo "\n=== Performance benchmarks complete! ==="
 
 # Run a specific test
 run-%: %
@@ -50,12 +65,12 @@ run-%: %
 
 # Clean target
 clean:
-	rm -f $(TEST_EXECUTABLES) $(OBJ_FILES)
+	rm -f $(ALL_EXECUTABLES) $(OBJ_FILES)
 	rm -rf tmp/
 
 # Rebuild everything
 rebuild: clean all
 
 # Phony targets
-.PHONY: all test clean rebuild run-%
+.PHONY: all test performance clean rebuild run-%
 
