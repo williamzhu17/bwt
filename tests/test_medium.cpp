@@ -271,7 +271,7 @@ int main() {
     std::cout << "All forward and recovered files will be saved for inspection.\n" << std::endl;
     
     // Define the data directory and block sizes to test
-    std::string data_dir = "../data/medium_size";
+    std::string data_dir = "../data/canterbury_corpus";
     // std::vector<size_t> block_sizes = {128, 256, 512, 1024, 4096, 16384};
     std::vector<size_t> block_sizes = {128};
     
