@@ -33,7 +33,7 @@ void run_test(const std::string& test_name, const TestResult& result) {
 TestResult test_forward_basic() {
     std::string input = "banana";
     std::string result = bwt_forward(input);
-    // Expected: "annb~aa" (last column of sorted rotations)
+    // Expected: "bnn~aaa" (last column of sorted rotations)
     
     if (result.length() != input.length() + 1) {
         return TestResult(false, "Expected length " + std::to_string(input.length() + 1) + 
@@ -42,8 +42,8 @@ TestResult test_forward_basic() {
     if (result.find('~') == std::string::npos) {
         return TestResult(false, "Result does not contain delimiter '~'");
     }
-    if (result != "annb~aa") {
-        return TestResult(false, "Expected \"annb~aa\", got \"" + result + "\"");
+    if (result != "bnn~aaa") {
+        return TestResult(false, "Expected \"bnn~aaa\", got \"" + result + "\"");
     }
     return TestResult(true);
 }
