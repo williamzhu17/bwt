@@ -21,6 +21,12 @@ struct TestCase {
     std::string expected_forward;  // Empty string means don't check forward result
 };
 
+// Helper function to create a test case with named parameters for clarity
+TestCase make_test_case(const std::string& name, const std::string& input, 
+                       char delimiter = '~', const std::string& expected_forward = "") {
+    return {name, input, delimiter, expected_forward};
+}
+
 // Helper function to run a test and report results
 void run_test(const std::string& test_name, const TestResult& result) {
     std::cout << "[" << (result.passed ? "PASS" : "FAIL") << "] " << test_name;
@@ -71,16 +77,16 @@ int main() {
     
     // Define all test cases with their input data
     std::vector<TestCase> test_cases = {
-        {"Forward BWT: basic string (with known result)", "banana", '~', "bnn~aaa"},
-        {"Round-trip: hello", "hello", '~', ""},
-        {"Round-trip: mississippi", "mississippi", '~', ""},
-        {"Round-trip: empty string", "", '~', ""},
-        {"Round-trip: single character", "a", '~', ""},
-        {"Round-trip: repeated characters", "aaaa", '~', ""},
-        {"Round-trip: special characters", "a!b@c#", '~', ""},
-        {"Round-trip: custom delimiter", "test", '$', ""},
-        {"Round-trip: longer string", "the quick brown fox jumps over the lazy dog", '~', ""},
-        {"Round-trip: string with newlines", "line1\nline2\nline3", '~', ""}
+        make_test_case("Forward BWT: basic string (with known result)", "banana", '~', "bnn~aaa"),
+        make_test_case("Round-trip: hello", "hello"),
+        make_test_case("Round-trip: mississippi", "mississippi"),
+        make_test_case("Round-trip: empty string", ""),
+        make_test_case("Round-trip: single character", "a"),
+        make_test_case("Round-trip: repeated characters", "aaaa"),
+        make_test_case("Round-trip: special characters", "a!b@c#"),
+        make_test_case("Round-trip: custom delimiter", "test", '$'),
+        make_test_case("Round-trip: longer string", "the quick brown fox jumps over the lazy dog"),
+        make_test_case("Round-trip: string with newlines", "line1\nline2\nline3")
     };
     
     // Run all tests and track results
