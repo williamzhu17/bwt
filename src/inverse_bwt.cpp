@@ -39,7 +39,7 @@ std::string bwt_inverse(const std::string& bwt_str, char delimiter) {
     return output_str;
 }
 
-
+#ifndef BUILD_TESTS
 int main(int argc, char* argv[]) {
     // Check for command line arguments
     if (argc < 3 || argc > 4) {
@@ -106,3 +106,4 @@ int main(int argc, char* argv[]) {
     out_file.close();
     return 0;
 }
+#endif // BUILD_TESTS
