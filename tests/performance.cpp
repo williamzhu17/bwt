@@ -221,8 +221,14 @@ int main(int argc, char* argv[]) {
     }
     
     // Define block sizes to test
-    std::vector<size_t> block_sizes = {128};
-    // Can be extended: std::vector<size_t> block_sizes = {128, 256, 512, 1024};
+    std::vector<size_t> block_sizes = {
+        512,        // 512 bytes
+        1 * 1024,   // 1 KB
+        4 * 1024,   // 4 KB
+        16 * 1024,  // 16 KB
+        64 * 1024  // 64 KB
+        //256 * 1024  // 256 KB // too large for my computer
+    };
     
     // Check if data directory exists
     if (!directory_exists(data_dir)) {
