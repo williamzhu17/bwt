@@ -78,8 +78,8 @@ def run_performance_test(input_file, block_size, num_trials):
     metrics.input_size = get_file_size(input_file)
     
     # Temporary file names
-    forward_file = "tmp/perf_forward.bwt"
-    recovered_file = "tmp/perf_recovered.txt"
+    forward_file = "build/tmp/perf_forward.bwt"
+    recovered_file = "build/tmp/perf_recovered.txt"
     
     for trial in range(num_trials):
         # Clean up previous files
@@ -277,13 +277,13 @@ def main():
     print("=" * 70)
     print(f"Number of trials per test: {num_trials}")
     
-    # Create tmp directory for temporary files
-    if not create_directory("tmp"):
-        print("Error: Failed to create tmp directory", file=sys.stderr)
+    # Create build/tmp directory for temporary files
+    if not create_directory("build/tmp"):
+        print("Error: Failed to create build/tmp directory", file=sys.stderr)
         return 1
     
     # Define data directory and block sizes to test
-    data_dir = "../data/canterbury_corpus"
+    data_dir = "data/canterbury_corpus"
     block_sizes = [128]  # Start with 128, can add more: [128, 256, 512, 1024]
     
     # Check if data directory exists
