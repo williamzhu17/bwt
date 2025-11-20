@@ -14,7 +14,7 @@
 #include "../util/test_utils.hpp"
 
 // Configuration
-const int NUM_TRIALS = 5;  // Number of times to run each test
+const int DEFAULT_NUM_TRIALS = 5;
 
 // Performance metrics structure
 struct PerformanceMetrics {
@@ -67,7 +67,7 @@ PerformanceMetrics run_performance_test(const std::string& input_file,
     metrics.input_size = get_file_size(input_file);
     
     // Generate temporary file names
-    std::string forward_file = "build/tmp/perf_forward.bwt";
+    std::string forward_file = "build/tmp/perf_temp.bwt";
     std::string recovered_file = "build/tmp/perf_recovered.txt";
     
     // Run multiple trials
@@ -191,19 +191,27 @@ void print_performance_results(const std::string& test_name,
 
 int main(int argc, char* argv[]) {
     std::cout << "\n" << std::string(70, '=') << std::endl;
-    std::cout << "BWT Performance Benchmark - Canterbury Corpus" << std::endl;
+    std::cout << "BWT Performance Benchmark" << std::endl;
     std::cout << std::string(70, '=') << std::endl;
     
-    // Parse command line arguments for number of trials
-    int num_trials = NUM_TRIALS;
+    // Default configuration
+    std::string data_dir = "data/canterbury_corpus";
+    int num_trials = DEFAULT_NUM_TRIALS;
+
+    // Parse command line arguments
     if (argc > 1) {
-        num_trials = std::atoi(argv[1]);
+        data_dir = argv[1];
+    }
+    
+    if (argc > 2) {
+        num_trials = std::atoi(argv[2]);
         if (num_trials < 1) {
-            std::cerr << "Invalid number of trials. Using default: " << NUM_TRIALS << std::endl;
-            num_trials = NUM_TRIALS;
+            std::cerr << "Invalid number of trials. Using default: " << DEFAULT_NUM_TRIALS << std::endl;
+            num_trials = DEFAULT_NUM_TRIALS;
         }
     }
     
+    std::cout << "Dataset Directory: " << data_dir << std::endl;
     std::cout << "Number of trials per test: " << num_trials << std::endl;
     
     // Create build/tmp directory for temporary files
@@ -212,10 +220,15 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Define the data directory and block sizes to test
-    std::string data_dir = "data/canterbury_corpus";
-    // std::vector<size_t> block_sizes = {128, 256, 512, 1024};
-    std::vector<size_t> block_sizes = {128};
+    // Define block sizes to test
+    std::vector<size_t> block_sizes = {
+        512,        // 512 bytes
+        1 * 1024,   // 1 KB
+        4 * 1024,   // 4 KB
+        16 * 1024,  // 16 KB
+        64 * 1024  // 64 KB
+        //256 * 1024  // 256 KB // too large for my computer
+    };
     
     // Check if data directory exists
     if (!directory_exists(data_dir)) {
