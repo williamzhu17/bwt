@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Parse block size (default 32KB)
-    size_t block_size = 32768;
+    // Parse block size (default 128B)
+    size_t block_size = 128;
     if (argc == 4) {
         block_size = std::stoul(argv[3]);
         if (block_size == 0) {
@@ -92,14 +92,9 @@ int main(int argc, char* argv[]) {
         // Convert chunk to string (only the bytes we actually read)
         std::string chunk(buffer.data(), bytes_read);
         
-        // If the last chunk is smaller than block_size + 1, write it straight up without inverting
-        if (bytes_read < bwt_chunk_size) {
-            out_file.write(chunk.c_str(), chunk.length());
-        } else {
-            // Apply inverse transform to this chunk and write
-            std::string result = bwt_inverse(chunk, delimiter);
-            out_file.write(result.c_str(), result.length());
-        }
+        // Apply inverse transform to this chunk and write
+        std::string result = bwt_inverse(chunk, delimiter);
+        out_file.write(result.c_str(), result.length());
     }
     
     file.close();
