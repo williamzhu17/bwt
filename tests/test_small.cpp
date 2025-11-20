@@ -15,7 +15,6 @@ struct TestCase {
 // Helper function to run a test and report results
 void run_test(const std::string& test_name, bool passed) {
     std::cout << "[" << (passed ? "PASS" : "FAIL") << "] " << test_name << std::endl;
-    assert(passed);
 }
 
 // Test forward BWT on a simple string
@@ -25,7 +24,8 @@ bool test_forward_basic() {
     // Expected: "annb~aa" (last column of sorted rotations)
     // Let's verify it's the correct length and contains expected characters
     return (result.length() == input.length() + 1) && // +1 for delimiter
-           (result.find('~') != std::string::npos); // Should contain delimiter
+           (result.find('~') != std::string::npos) && // Should contain delimiter
+           (result == "annb~aa"); // Expected result
 }
 
 // Test inverse BWT on a known BWT string
@@ -128,12 +128,31 @@ int main() {
         {"Round-trip: string with newlines", test_with_newlines}
     };
     
-    // Run all tests
+    // Run all tests and track results
+    int passed_count = 0;
+    int failed_count = 0;
+    
     for (const auto& test_case : tests) {
         bool passed = test_case.test_func();
         run_test(test_case.name, passed);
+        if (passed) {
+            passed_count++;
+        } else {
+            failed_count++;
+        }
     }
     
-    std::cout << "\nAll tests passed!" << std::endl;
-    return 0;
+    // Print summary
+    std::cout << "\n=== Test Summary ===" << std::endl;
+    std::cout << "Total tests: " << tests.size() << std::endl;
+    std::cout << "Passed: " << passed_count << std::endl;
+    std::cout << "Failed: " << failed_count << std::endl;
+    
+    if (failed_count == 0) {
+        std::cout << "\nAll tests passed!" << std::endl;
+        return 0;
+    } else {
+        std::cout << "\nSome tests failed!" << std::endl;
+        return 1;
+    }
 }
