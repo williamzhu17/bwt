@@ -6,6 +6,9 @@
 #include <chrono>
 #include <numeric>
 #include <cmath>
+#include <map>
+#include <iomanip>
+#include <sstream>
 #include "../src/file_processor.hpp"
 #include "../src/bwt.hpp"
 #include "../src/inverse_bwt.hpp"
@@ -189,6 +192,57 @@ void print_performance_results(const std::string& test_name,
     std::cout << std::string(70, '=') << std::endl;
 }
 
+// Print aggregate statistics for the entire run
+void print_aggregate_statistics(const std::map<size_t, std::vector<PerformanceMetrics>>& results_by_block_size) {
+    std::cout << "\n" << std::string(70, '=') << std::endl;
+    std::cout << "Aggregate Statistics by Block Size (Entire Dataset)" << std::endl;
+    std::cout << std::string(70, '=') << std::endl;
+
+    // Table Header
+    std::cout << std::left 
+              << std::setw(12) << "Block Size"
+              << std::setw(15) << "Total Size"
+              << std::setw(15) << "Total Time"
+              << std::setw(18) << "Throughput"
+              << std::setw(12) << "Comp. Ratio" << std::endl;
+    std::cout << std::string(72, '-') << std::endl;
+
+    for (const auto& entry : results_by_block_size) {
+        size_t block_size = entry.first;
+        const auto& metrics_list = entry.second;
+
+        size_t total_input_size = 0;
+        size_t total_output_size = 0;
+        double total_time = 0.0;
+
+        for (const auto& m : metrics_list) {
+            total_input_size += m.input_size;
+            total_output_size += m.output_size;
+            total_time += m.total_mean;
+        }
+
+        double throughput_mb_s = 0.0;
+        if (total_time > 0) {
+            throughput_mb_s = (total_input_size / (1024.0 * 1024.0)) / total_time;
+        }
+        
+        double compression_ratio = (total_input_size > 0) ? 
+            (double)total_output_size / total_input_size : 0.0;
+
+        std::stringstream ss_throughput;
+        ss_throughput << std::fixed << std::setprecision(2) << throughput_mb_s << " MB/s";
+
+        std::cout << std::left 
+                  << std::setw(12) << format_size(block_size)
+                  << std::setw(15) << format_size(total_input_size)
+                  << std::setw(15) << format_time(total_time)
+                  << std::setw(18) << ss_throughput.str()
+                  << std::setw(12) << std::fixed << std::setprecision(4) << compression_ratio 
+                  << std::endl;
+    }
+    std::cout << std::string(70, '=') << std::endl;
+}
+
 int main(int argc, char* argv[]) {
     std::cout << "\n" << std::string(70, '=') << std::endl;
     std::cout << "BWT Performance Benchmark" << std::endl;
@@ -251,6 +305,7 @@ int main(int argc, char* argv[]) {
     std::cout << std::string(70, '=') << std::endl;
     
     // Run all performance tests
+    std::map<size_t, std::vector<PerformanceMetrics>> results_by_block_size;
     int completed = 0;
     for (const auto& test_case : test_cases) {
         completed++;
@@ -273,11 +328,17 @@ int main(int argc, char* argv[]) {
         
         // Print results
         print_performance_results(test_case.name, metrics, test_case.block_size);
+        
+        // Collect metrics
+        results_by_block_size[test_case.block_size].push_back(metrics);
     }
     
     std::cout << "\n" << std::string(70, '=') << std::endl;
     std::cout << "Performance Benchmark Complete!" << std::endl;
     std::cout << "Total tests completed: " << completed << std::endl;
+    
+    print_aggregate_statistics(results_by_block_size);
+    
     std::cout << std::string(70, '=') << std::endl;
     
     return 0;
