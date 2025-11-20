@@ -1,6 +1,7 @@
 .vscode/
 build/
 __pycache__/
+tmp/
 
 # Object files
 *.o
@@ -12,6 +13,5 @@ tests/test_small
 tests/test_medium
 tests/performance_medium
 tests/*.tmp
-tests/tmp/
 
 .DS_Store

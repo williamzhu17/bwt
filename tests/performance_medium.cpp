@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
     }
     
     // Define the data directory and block sizes to test
-    std::string data_dir = "../data/canterbury_corpus";
+    std::string data_dir = "data/canterbury_corpus";
     // std::vector<size_t> block_sizes = {128, 256, 512, 1024};
     std::vector<size_t> block_sizes = {128};
     
