@@ -10,7 +10,7 @@ def forward(input: str):
     # create a string using data_block
     bwt_str = ""
     # STEP-1: add a delimiter
-    input += '~'
+    input += '$'
 
     # STEP-2: get all cyclic rotations, and sort
     N = len(input)

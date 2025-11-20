@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     }
     
     // Process file in chunks
-    char delimiter = '~';
+    char delimiter = '$';
     
     while (processor.has_more_data()) {
         // Read a chunk

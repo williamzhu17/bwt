@@ -35,7 +35,7 @@ TEMP_PY_BWT="temp_${INPUT_BASENAME}_py_bwt.txt"
 TEMP_PY_RESTORED="temp_${INPUT_BASENAME}_py_restored.txt"
 
 # Block sizes to test
-BLOCK_SIZES=(64 128 256 512 1024 2048)
+BLOCK_SIZES=(64 128 256 512 1024 2048 4096 8192 32768 65536)
 
 # Check if input file exists
 if [ ! -f "$INPUT_FILE" ]; then

@@ -2,30 +2,47 @@
 import sys
 import argparse
 
-def inverse(transformed: str):
+def inverse(transformed: str, delimiter: str = '$') -> str:
     """
-    Generates the inverse of the BWT.
+    Reconstruct the original string from its BWT transform using the LF-mapping
+    described in Ben Langmead's thesis (S := cS; r := LF(r)).
     """
-    N = len(transformed)
+    n = len(transformed)
+    if n == 0:
+        return ""
 
-    output_str = ""
-    delimiter = '~'
+    # Count characters and record Occ(c, i) = number of occurrences of `c`
+    # strictly before position i in the last column.
+    occ_before = {}
+    occ_table = [0] * n
+    delimiter_row = -1
 
-    # decoding loop
-    bwm_list = ["" for i in range(N)]
-    for _ in range(N):
-        bwm_list = [transformed[i] + bwm_list[i] for i in range(N)]
-        bwm_list.sort()
+    for i, ch in enumerate(transformed):
+        if ch == delimiter:
+            delimiter_row = i
 
-    # find the string which ends with delimiter
-    output_str = ""
-    for _str in bwm_list:
-        if _str.endswith(delimiter):
-            # Return string without the delimiter
-            output_str = _str[:-1]
+        occ_table[i] = occ_before.get(ch, 0)
+        occ_before[ch] = occ_table[i] + 1
+
+    # C(c): index of the first occurrence of 'c' in the sorted first column.
+    first_occurrence = {}
+    total = 0
+    for ch in sorted(occ_before.keys()):
+        first_occurrence[ch] = total
+        total += occ_before[ch]
+
+    # Follow Langmead's pseudocode: rebuild string by iteratively applying LF.
+    result = []
+    row = delimiter_row
+    while True:
+        row = first_occurrence[transformed[row]] + occ_table[row]
+        ch = transformed[row]
+        if ch == delimiter:
             break
+        result.append(ch)
 
-    return output_str
+    result.reverse()
+    return "".join(result)
 
 def main():
     parser = argparse.ArgumentParser(description='BWT Inverse Transform')
