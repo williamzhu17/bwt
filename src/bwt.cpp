@@ -10,13 +10,14 @@
 // Forward BWT transform
 std::string bwt_forward(const std::string& input, char delimiter) {
     // Add delimiter to input string
-    std::string input_block_str = input + delimiter;
-    
+    std::string cur_str = input + delimiter;
+    size_t len = cur_str.length();
     // Generate all rotations
     std::vector<std::string> rotations;
-    for (size_t i = 0; i < input_block_str.length(); i++) {
-        // Cyclic shift starting from position i
-        rotations.push_back(input_block_str.substr(i) + input_block_str.substr(0, i));
+    for (size_t i = 0; i < len; i++) {
+        // Cyclic shift: take last char and put it at front
+        cur_str = cur_str.back() + cur_str.substr(0, len - 1);
+        rotations.push_back(cur_str);
     }
     
     // Sort rotations
@@ -64,7 +65,6 @@ int main(int argc, char* argv[]) {
         file.close();
         return 1;
     }
-    std::cout << block_size << std::endl;
     // Process file in chunks
     std::vector<char> buffer(block_size);
     char delimiter = '~';
