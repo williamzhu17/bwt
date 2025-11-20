@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -DBUILD_TESTS
+CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -DBUILD_TESTS
 LDFLAGS = 
 
 # Source directory
