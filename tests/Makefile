@@ -16,8 +16,8 @@ OBJ_FILES = bwt.o inverse_bwt.o file_processor.o
 # Find all test .cpp files
 TEST_SOURCES = $(wildcard *.cpp)
 
-# Create test executable names (remove .cpp extension)
-TEST_EXECUTABLES = $(TEST_SOURCES:%.cpp=%)
+# Create test executable names in desired order (small tests first)
+TEST_EXECUTABLES = test_small test_medium
 
 # Default target: build all test executables
 all: $(TEST_EXECUTABLES)
@@ -51,6 +51,7 @@ run-%: %
 # Clean target
 clean:
 	rm -f $(TEST_EXECUTABLES) $(OBJ_FILES)
+	rm -rf tmp/
 
 # Rebuild everything
 rebuild: clean all

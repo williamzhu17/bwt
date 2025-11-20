@@ -7,6 +7,9 @@ build/
 # Executables
 src/bwt
 src/inverse_bwt
-tests/test_*
+tests/test_small
+tests/test_medium
+tests/*.tmp
+tests/tmp/
 
 .DS_Store
