@@ -95,11 +95,26 @@ To run C++ performance benchmarks:
 make performance
 ```
 
-This runs the `performance_medium` suite, which measures:
+This runs the benchmark suite on the default **Canterbury Corpus**. The benchmark measures:
 - Forward BWT execution time.
 - Inverse BWT execution time.
 - Total round-trip time.
 - Throughput (MB/s).
+
+You can also run the benchmark on a custom dataset:
+```bash
+./build/performance <dataset_path> [num_trials]
+```
+
+**Arguments:**
+- `dataset_path`: Path to the directory containing test files.
+- `num_trials`: Number of times to run each test (optional, default: 5).
+
+**Example:**
+```bash
+# Run on Silesia corpus with 2 trials per file
+./build/performance data/silesia 2
+```
 
 ### Additional Scripts
 
