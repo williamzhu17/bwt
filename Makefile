@@ -19,7 +19,7 @@ MAIN_EXECS := $(BWT_EXEC) $(INV_BWT_EXEC)
 
 # Test Executables
 TEST_EXECS := $(BUILD_DIR)/test_small $(BUILD_DIR)/test_medium
-PERF_EXECS := $(BUILD_DIR)/performance_medium
+PERF_EXECS := $(BUILD_DIR)/performance
 
 # Source Files
 UTIL_SRCS := $(wildcard $(UTIL_DIR)/*.cpp)
