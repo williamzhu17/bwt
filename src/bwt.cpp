@@ -79,8 +79,6 @@ int main(int argc, char* argv[]) {
         }
         
         std::string chunk(buffer.data(), bytes_read);
-        
-        // If the last chunk is smaller than block_size + 1, write it straight up without transforming
         std::string result = bwt_forward(chunk, delimiter);
         out_file.write(result.c_str(), result.length());
     }

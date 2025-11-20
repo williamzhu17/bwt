@@ -89,10 +89,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         
-        // Convert chunk to string (only the bytes we actually read)
         std::string chunk(buffer.data(), bytes_read);
-        
-        // Apply inverse transform to this chunk and write
         std::string result = bwt_inverse(chunk, delimiter);
         out_file.write(result.c_str(), result.length());
     }
