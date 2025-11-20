@@ -10,23 +10,18 @@
 std::string bwt_inverse(const std::string& bwt_str, char delimiter) {
     size_t len = bwt_str.length();
     
-    // Sort the BWT string to get sorted symbols
-    std::string sorted_symbols = bwt_str;
-    std::sort(sorted_symbols.begin(), sorted_symbols.end());
-    
     // Initialize rotation_list with sorted single characters
     std::vector<std::string> rotation_list;
+
     for (size_t i = 0; i < len; i++) {
-        rotation_list.push_back(std::string(1, sorted_symbols[i]));
+        rotation_list.push_back("");
     }
     
     // Repeat N-1 times: prepend BWT characters and sort
-    for (size_t i = 0; i < len - 1; i++) {
-        // Prepend each BWT character to corresponding string
-        for (size_t j = 0; j < rotation_list.size(); j++) {
+    for (size_t i = 0; i < len; i++) {
+        for (size_t j = 0; j < len; j++) {
             rotation_list[j] = bwt_str[j] + rotation_list[j];
         }
-        
         // Sort the strings
         std::sort(rotation_list.begin(), rotation_list.end());
     }
@@ -43,6 +38,7 @@ std::string bwt_inverse(const std::string& bwt_str, char delimiter) {
     
     return output_str;
 }
+
 
 int main(int argc, char* argv[]) {
     // Check for command line arguments
