@@ -62,31 +62,14 @@ std::string bwt_inverse(const std::string& bwt_str, char delimiter) {
     return std::string(result.begin(), result.end());    
 }
 
-#ifndef BUILD_TESTS
-int main(int argc, char* argv[]) {
-    // Check for command line arguments
-    if (argc < 3 || argc > 4) {
-        std::cerr << "Usage: " << argv[0] << " <input_file> <output_file> [block_size]" << std::endl;
-        std::cerr << "  block_size: size of each block in bytes (default: 128)" << std::endl;
-        return 1;
-    }
-    
-    // Parse block size (default 128B)
-    size_t block_size = 128;
-    if (argc == 4) {
-        block_size = std::stoul(argv[3]);
-        if (block_size == 0) {
-            std::cerr << "Error: Block size must be greater than 0" << std::endl;
-            return 1;
-        }
-    }
-    
+// Process file with inverse BWT transform
+int bwt_inverse_process_file(const char* input_file, const char* output_file, size_t block_size) {
     // Note: Forward BWT outputs chunks of size (input_size + 1) due to delimiter
     // So we need to read chunks of size (block_size + 1) to match
     size_t bwt_chunk_size = block_size + 1;
     
     // Create FileProcessor to handle file I/O
-    FileProcessor processor(argv[1], argv[2], bwt_chunk_size);
+    FileProcessor processor(input_file, output_file, bwt_chunk_size);
     
     if (!processor.is_open()) {
         return 1;
@@ -110,5 +93,28 @@ int main(int argc, char* argv[]) {
     
     processor.close();
     return 0;
+}
+
+#ifndef BUILD_TESTS
+int main(int argc, char* argv[]) {
+    // Check for command line arguments
+    if (argc < 3 || argc > 4) {
+        std::cerr << "Usage: " << argv[0] << " <input_file> <output_file> [block_size]" << std::endl;
+        std::cerr << "  block_size: size of each block in bytes (default: 128)" << std::endl;
+        return 1;
+    }
+    
+    // Parse block size (default 128B)
+    size_t block_size = 128;
+    if (argc == 4) {
+        block_size = std::stoul(argv[3]);
+        if (block_size == 0) {
+            std::cerr << "Error: Block size must be greater than 0" << std::endl;
+            return 1;
+        }
+    }
+    
+    // Process the file
+    return bwt_inverse_process_file(argv[1], argv[2], block_size);
 }
 #endif // BUILD_TESTS

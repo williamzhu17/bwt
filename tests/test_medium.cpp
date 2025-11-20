@@ -37,7 +37,6 @@ struct MediumTestCase {
     std::string name;
     std::string input_file;
     size_t block_size;
-    char delimiter;
 };
 
 // Helper function to check if a file exists
@@ -89,7 +88,7 @@ bool files_are_identical(const std::string& file1, const std::string& file2) {
 
 // Test function for file-based BWT round-trip
 TestResult test_file_round_trip(const std::string& test_name, const std::string& input_file, 
-                                size_t block_size, char delimiter = '~') {
+                                size_t block_size) {
     // Check if input file exists
     if (!file_exists(input_file)) {
         return TestResult(false, "Input file does not exist: " + input_file);
@@ -113,22 +112,11 @@ TestResult test_file_round_trip(const std::string& test_name, const std::string&
     std::string forward_file = "tmp/" + safe_name + "_forward";
     std::string recovered_file = "tmp/" + safe_name + "_recovered";
     
-    // Step 1: Forward BWT (read chunks, transform, write)
-    {
-        FileProcessor processor(input_file, forward_file, block_size);
-        if (!processor.is_open()) {
-            return TestResult(false, "Failed to open files for forward BWT");
-        }
-        
-        while (processor.has_more_data()) {
-            std::string chunk = processor.read_chunk();
-            if (chunk.empty()) {
-                break;
-            }
-            
-            std::string transformed = bwt_forward(chunk, delimiter);
-            processor.write_chunk(transformed);
-        }
+    // Step 1: Forward BWT using process_file from bwt.hpp
+    // Forward BWT is defined in the bwt namespace/compilation unit
+    int forward_result = bwt_forward_process_file(input_file.c_str(), forward_file.c_str(), block_size);
+    if (forward_result != 0) {
+        return TestResult(false, "Failed to process forward BWT");
     }
     
     // Verify forward file was created and has correct size
@@ -149,24 +137,11 @@ TestResult test_file_round_trip(const std::string& test_name, const std::string&
                           std::to_string(forward_size));
     }
     
-    // Step 2: Inverse BWT (read transformed chunks, inverse transform, write)
-    {
-        // Note: block_size + 1 because forward BWT adds a delimiter to each chunk
-        FileProcessor processor(forward_file, recovered_file, block_size + 1);
-        if (!processor.is_open()) {
-            std::remove(forward_file.c_str());
-            return TestResult(false, "Failed to open files for inverse BWT");
-        }
-        
-        while (processor.has_more_data()) {
-            std::string chunk = processor.read_chunk();
-            if (chunk.empty()) {
-                break;
-            }
-            
-            std::string recovered = bwt_inverse(chunk, delimiter);
-            processor.write_chunk(recovered);
-        }
+    // Step 2: Inverse BWT using process_file from inverse_bwt.hpp
+    int inverse_result = bwt_inverse_process_file(forward_file.c_str(), recovered_file.c_str(), block_size);
+    if (inverse_result != 0) {
+        std::remove(forward_file.c_str());
+        return TestResult(false, "Failed to process inverse BWT");
     }
     
     // Verify recovered file was created
@@ -235,8 +210,7 @@ std::vector<std::string> list_files_in_directory(const std::string& dir_path) {
 
 // Generate test cases for all files in a directory with specified block sizes
 std::vector<MediumTestCase> generate_test_cases(const std::string& data_dir, 
-                                                 const std::vector<size_t>& block_sizes,
-                                                 char delimiter = '~') {
+                                                 const std::vector<size_t>& block_sizes) {
     std::vector<MediumTestCase> test_cases;
     std::vector<std::string> files = list_files_in_directory(data_dir);
     
@@ -252,7 +226,7 @@ std::vector<MediumTestCase> generate_test_cases(const std::string& data_dir,
             test_name += " blocks)";
             
             std::string file_path = data_dir + "/" + filename;
-            test_cases.push_back({test_name, file_path, block_size, delimiter});
+            test_cases.push_back({test_name, file_path, block_size});
         }
     }
     
@@ -277,7 +251,7 @@ int main() {
     
     // Dynamically generate test cases for all files in the directory
     std::cout << "Scanning directory: " << data_dir << std::endl;
-    std::vector<MediumTestCase> test_cases = generate_test_cases(data_dir, block_sizes, '~');
+    std::vector<MediumTestCase> test_cases = generate_test_cases(data_dir, block_sizes);
     
     if (test_cases.empty()) {
         std::cerr << "Error: No test cases generated. Check if data directory exists and contains files." << std::endl;
@@ -295,8 +269,7 @@ int main() {
         std::cout << "Running: " << test_case.name << std::endl;
         TestResult result = test_file_round_trip(test_case.name,
                                                  test_case.input_file, 
-                                                 test_case.block_size, 
-                                                 test_case.delimiter);
+                                                 test_case.block_size);
         run_test(test_case.name, result);
         
         if (result.passed) {
