@@ -1,20 +1,16 @@
 #include <iostream>
-#include <iomanip>
-#include <sstream>
 #include <string>
 #include <vector>
-#include <fstream>
 #include <cstdio>
 #include <algorithm>
 #include <chrono>
 #include <numeric>
 #include <cmath>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
 #include "../src/file_processor.hpp"
 #include "../src/bwt.hpp"
 #include "../src/inverse_bwt.hpp"
+#include "../util/file_utils.hpp"
+#include "../util/format_utils.hpp"
 
 // Configuration
 const int NUM_TRIALS = 5;  // Number of times to run each test
@@ -68,30 +64,6 @@ struct PerformanceTestCase {
     std::string input_file;
     size_t block_size;
 };
-
-// Helper function to create directory if it doesn't exist
-bool create_directory(const std::string& dir_path) {
-    struct stat st;
-    if (stat(dir_path.c_str(), &st) == 0) {
-        return S_ISDIR(st.st_mode);
-    }
-    return mkdir(dir_path.c_str(), 0755) == 0;
-}
-
-// Helper function to check if a file exists
-bool file_exists(const std::string& filename) {
-    struct stat buffer;
-    return (stat(filename.c_str(), &buffer) == 0);
-}
-
-// Helper function to get file size
-size_t get_file_size(const std::string& filename) {
-    struct stat buffer;
-    if (stat(filename.c_str(), &buffer) != 0) {
-        return 0;
-    }
-    return buffer.st_size;
-}
 
 // Performance test function - runs forward and inverse BWT and measures time
 PerformanceMetrics run_performance_test(const std::string& input_file, 
@@ -155,38 +127,6 @@ PerformanceMetrics run_performance_test(const std::string& input_file,
     metrics.calculate_statistics();
     
     return metrics;
-}
-
-// Helper function to format time with appropriate units
-std::string format_time(double seconds) {
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(4);
-    
-    if (seconds < 0.001) {
-        oss << (seconds * 1000000) << " μs";
-    } else if (seconds < 1.0) {
-        oss << (seconds * 1000) << " ms";
-    } else {
-        oss << seconds << " s";
-    }
-    
-    return oss.str();
-}
-
-// Helper function to format file size
-std::string format_size(size_t bytes) {
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(2);
-    
-    if (bytes < 1024) {
-        oss << bytes << " B";
-    } else if (bytes < 1024 * 1024) {
-        oss << (bytes / 1024.0) << " KB";
-    } else {
-        oss << (bytes / (1024.0 * 1024.0)) << " MB";
-    }
-    
-    return oss.str();
 }
 
 // Print performance results
@@ -255,33 +195,6 @@ void print_performance_results(const std::string& test_name,
     std::cout << std::string(70, '=') << std::endl;
 }
 
-// Helper function to list all files in a directory
-std::vector<std::string> list_files_in_directory(const std::string& dir_path) {
-    std::vector<std::string> files;
-    DIR* dir = opendir(dir_path.c_str());
-    
-    if (dir == nullptr) {
-        std::cerr << "Warning: Could not open directory: " << dir_path << std::endl;
-        return files;
-    }
-    
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != nullptr) {
-        if (std::string(entry->d_name) == "." || std::string(entry->d_name) == "..") {
-            continue;
-        }
-        
-        std::string full_path = dir_path + "/" + entry->d_name;
-        struct stat st;
-        if (stat(full_path.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
-            files.push_back(entry->d_name);
-        }
-    }
-    
-    closedir(dir);
-    return files;
-}
-
 // Generate test cases for all files in a directory with specified block sizes
 std::vector<PerformanceTestCase> generate_test_cases(const std::string& data_dir, 
                                                      const std::vector<size_t>& block_sizes) {
@@ -331,8 +244,7 @@ int main(int argc, char* argv[]) {
     std::vector<size_t> block_sizes = {128};
     
     // Check if data directory exists
-    struct stat st;
-    if (stat(data_dir.c_str(), &st) != 0 || !S_ISDIR(st.st_mode)) {
+    if (!directory_exists(data_dir)) {
         std::cerr << "Error: Data directory not found: " << data_dir << std::endl;
         return 1;
     }
