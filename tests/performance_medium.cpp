@@ -11,6 +11,7 @@
 #include "../src/inverse_bwt.hpp"
 #include "../util/file_utils.hpp"
 #include "../util/format_utils.hpp"
+#include "../util/test_utils.hpp"
 
 // Configuration
 const int NUM_TRIALS = 5;  // Number of times to run each test
@@ -56,13 +57,6 @@ private:
         }
         return std::sqrt(sum_squared_diff / (values.size() - 1));
     }
-};
-
-// Test case structure
-struct PerformanceTestCase {
-    std::string name;
-    std::string input_file;
-    size_t block_size;
 };
 
 // Performance test function - runs forward and inverse BWT and measures time
@@ -195,26 +189,6 @@ void print_performance_results(const std::string& test_name,
     std::cout << std::string(70, '=') << std::endl;
 }
 
-// Generate test cases for all files in a directory with specified block sizes
-std::vector<PerformanceTestCase> generate_test_cases(const std::string& data_dir, 
-                                                     const std::vector<size_t>& block_sizes) {
-    std::vector<PerformanceTestCase> test_cases;
-    std::vector<std::string> files = list_files_in_directory(data_dir);
-    
-    // Sort files for consistent test ordering
-    std::sort(files.begin(), files.end());
-    
-    for (const auto& filename : files) {
-        for (size_t block_size : block_sizes) {
-            std::string test_name = filename;
-            std::string file_path = data_dir + "/" + filename;
-            test_cases.push_back({test_name, file_path, block_size});
-        }
-    }
-    
-    return test_cases;
-}
-
 int main(int argc, char* argv[]) {
     std::cout << "\n" << std::string(70, '=') << std::endl;
     std::cout << "BWT Performance Benchmark - Canterbury Corpus" << std::endl;
@@ -251,7 +225,7 @@ int main(int argc, char* argv[]) {
     
     // Generate test cases
     std::cout << "Scanning directory: " << data_dir << std::endl;
-    std::vector<PerformanceTestCase> test_cases = generate_test_cases(data_dir, block_sizes);
+    std::vector<FileTestCase> test_cases = generate_file_test_cases(data_dir, block_sizes, false);
     
     if (test_cases.empty()) {
         std::cerr << "Error: No test cases generated. Check if data directory contains files." << std::endl;

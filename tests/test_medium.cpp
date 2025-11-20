@@ -9,6 +9,7 @@
 #include "../src/bwt.hpp"
 #include "../src/inverse_bwt.hpp"
 #include "../util/file_utils.hpp"
+#include "../util/test_utils.hpp"
 
 // Test result structure
 struct TestResult {
@@ -16,13 +17,6 @@ struct TestResult {
     std::string error_msg;
     
     TestResult(bool p, const std::string& msg = "") : passed(p), error_msg(msg) {}
-};
-
-// Medium test case structure
-struct MediumTestCase {
-    std::string name;
-    std::string input_file;
-    size_t block_size;
 };
 
 // Test function for file-based BWT round-trip
@@ -118,31 +112,6 @@ void run_test(const std::string& test_name, const TestResult& result) {
     std::cout << std::endl;
 }
 
-// Generate test cases for all files in a directory with specified block sizes
-std::vector<MediumTestCase> generate_test_cases(const std::string& data_dir, 
-                                                 const std::vector<size_t>& block_sizes) {
-    std::vector<MediumTestCase> test_cases;
-    std::vector<std::string> files = list_files_in_directory(data_dir);
-    
-    // Sort files for consistent test ordering
-    std::sort(files.begin(), files.end());
-    
-    for (const auto& filename : files) {
-        for (size_t block_size : block_sizes) {
-            std::string test_name = filename + " (" + std::to_string(block_size);
-            if (block_size >= 1024) {
-                test_name = filename + " (" + std::to_string(block_size / 1024) + "KB";
-            }
-            test_name += " blocks)";
-            
-            std::string file_path = data_dir + "/" + filename;
-            test_cases.push_back({test_name, file_path, block_size});
-        }
-    }
-    
-    return test_cases;
-}
-
 int main() {
     std::cout << "Running BWT medium file tests...\n" << std::endl;
     
@@ -161,7 +130,7 @@ int main() {
     
     // Dynamically generate test cases for all files in the directory
     std::cout << "Scanning directory: " << data_dir << std::endl;
-    std::vector<MediumTestCase> test_cases = generate_test_cases(data_dir, block_sizes);
+    std::vector<FileTestCase> test_cases = generate_file_test_cases(data_dir, block_sizes, true);
     
     if (test_cases.empty()) {
         std::cerr << "Error: No test cases generated. Check if data directory exists and contains files." << std::endl;

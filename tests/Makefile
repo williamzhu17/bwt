@@ -10,10 +10,10 @@ TEST_DIR = .
 
 # Source files to compile (without main functions)
 SRC_FILES = $(SRC_DIR)/bwt.cpp $(SRC_DIR)/inverse_bwt.cpp $(SRC_DIR)/file_processor.cpp
-UTIL_FILES = $(UTIL_DIR)/file_utils.cpp $(UTIL_DIR)/format_utils.cpp
+UTIL_FILES = $(UTIL_DIR)/file_utils.cpp $(UTIL_DIR)/format_utils.cpp $(UTIL_DIR)/test_utils.cpp
 
 # Object files
-OBJ_FILES = bwt.o inverse_bwt.o file_processor.o file_utils.o format_utils.o
+OBJ_FILES = bwt.o inverse_bwt.o file_processor.o file_utils.o format_utils.o test_utils.o
 
 # Find all test .cpp files
 TEST_SOURCES = $(wildcard *.cpp)
@@ -38,6 +38,7 @@ $(OBJ_FILES): $(SRC_FILES) $(UTIL_FILES)
 	@$(CXX) $(CXXFLAGS) -c $(SRC_DIR)/file_processor.cpp -o file_processor.o
 	@$(CXX) $(CXXFLAGS) -c $(UTIL_DIR)/file_utils.cpp -o file_utils.o
 	@$(CXX) $(CXXFLAGS) -c $(UTIL_DIR)/format_utils.cpp -o format_utils.o
+	@$(CXX) $(CXXFLAGS) -c $(UTIL_DIR)/test_utils.cpp -o test_utils.o
 
 # Pattern rule to build test executables
 # Each test links against the object files
