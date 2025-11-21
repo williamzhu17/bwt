@@ -28,6 +28,10 @@ public:
     // Read a chunk from the input file
     // Returns the chunk as a string, and the actual number of bytes read
     std::string read_chunk();
+
+    // Read a single character from the input file
+    // Returns true if successful, false if EOF or error
+    bool read_char(char& c);
     
     // Write a chunk to the output file
     void write_chunk(const std::string& chunk);

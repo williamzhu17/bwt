@@ -64,55 +64,37 @@ std::string bwt_inverse(const std::string& bwt_str, char delimiter) {
 
 // Process file with inverse BWT transform
 int bwt_inverse_process_file(const char* input_file, const char* output_file, size_t block_size) {
-    // Read delimiter from first byte of input file
-    std::ifstream infile(input_file, std::ios::binary);
-    if (!infile.is_open()) {
-        std::cerr << "Error: Could not open input file " << input_file << std::endl;
-        return 1;
-    }
-    
-    char delimiter_byte;
-    infile.read(&delimiter_byte, 1);
-    if (infile.gcount() == 0) {
-        std::cerr << "Error: Empty input file" << std::endl;
-        infile.close();
-        return 1;
-    }
-    
-    char delimiter = delimiter_byte;
-    
     // Note: Forward BWT outputs chunks of size (input_size + 1) due to delimiter
     // So we need to read chunks of size (block_size + 1) to match
     size_t bwt_chunk_size = block_size + 1;
     
-    // Open output file
-    std::ofstream outfile(output_file, std::ios::binary);
-    if (!outfile.is_open()) {
-        std::cerr << "Error: Could not open output file " << output_file << std::endl;
-        infile.close();
+    FileProcessor processor(input_file, output_file, bwt_chunk_size);
+    
+    if (!processor.is_open()) {
         return 1;
     }
     
-    // Process file in chunks (skip the first byte which is the delimiter)
-    std::vector<char> buffer(bwt_chunk_size);
-    while (infile.good()) {
-        infile.read(buffer.data(), bwt_chunk_size);
-        size_t bytes_read = infile.gcount();
+    char delimiter;
+    if (!processor.read_char(delimiter)) {
+        std::cerr << "Error: Empty input file" << std::endl;
+        processor.close();
+        return 1;
+    }
+    
+    // Process file in chunks
+    while (processor.has_more_data()) {
+        std::string chunk = processor.read_chunk();
         
-        if (bytes_read == 0) {
+        if (chunk.empty()) {
             break;
         }
         
-        // Convert bytes to string for processing
-        std::string chunk(buffer.data(), bytes_read);
-        
         // Apply inverse BWT and write result
         std::string result = bwt_inverse(chunk, delimiter);
-        outfile.write(result.c_str(), result.length());
+        processor.write_chunk(result);
     }
     
-    infile.close();
-    outfile.close();
+    processor.close();
     return 0;
 }
 

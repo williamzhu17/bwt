@@ -15,22 +15,20 @@ int find_unique_char(const char* file_path) {
     std::unordered_set<unsigned char> used_bytes;
     const size_t chunk_size = 8192;  // 8KB chunks
     
-    std::ifstream file(file_path, std::ios::binary);
-    if (!file.is_open()) {
+    FileProcessor processor(file_path, "", chunk_size);
+    if (!processor.is_open()) {
         return -1;
     }
     
     // Read file in chunks and track which bytes appear
-    std::vector<char> buffer(chunk_size);
-    while (file.good()) {
-        file.read(buffer.data(), chunk_size);
-        size_t bytes_read = file.gcount();
+    while (processor.has_more_data()) {
+        std::string chunk = processor.read_chunk();
         
-        for (size_t i = 0; i < bytes_read; ++i) {
-            used_bytes.insert(static_cast<unsigned char>(buffer[i]));
+        for (char c : chunk) {
+            used_bytes.insert(static_cast<unsigned char>(c));
         }
     }
-    file.close();
+    processor.close();
     
     // Find the first unused byte value (0-255)
     for (int byte_val = 0; byte_val < 256; ++byte_val) {

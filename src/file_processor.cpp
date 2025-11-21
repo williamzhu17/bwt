@@ -9,11 +9,13 @@ FileProcessor::FileProcessor(const std::string& input_path, const std::string& o
         std::cerr << "Error: Could not open input file " << input_path << std::endl;
     }
     
-    // Open output file in binary mode
-    output_file.open(output_path, std::ios::binary);
-    if (!output_file.is_open()) {
-        std::cerr << "Error: Could not open output file " << output_path << std::endl;
-        input_file.close();
+    // Open output file in binary mode if path is provided
+    if (!output_path.empty()) {
+        output_file.open(output_path, std::ios::binary);
+        if (!output_file.is_open()) {
+            std::cerr << "Error: Could not open output file " << output_path << std::endl;
+            input_file.close();
+        }
     }
 }
 
@@ -22,7 +24,13 @@ FileProcessor::~FileProcessor() {
 }
 
 bool FileProcessor::is_open() const {
-    return input_file.is_open() && output_file.is_open();
+    // If input is open, and (either output is not needed (closed but no error?) or output is open)
+    // But we don't store if output was needed.
+    // Let's assume if input is open, it's good enough if we didn't request output.
+    // But how do we know if we requested output?
+    // We can check if output_file is open.
+    // If we requested output and it failed, input_file would be closed in constructor.
+    return input_file.is_open();
 }
 
 bool FileProcessor::has_more_data() const {
@@ -43,6 +51,14 @@ std::string FileProcessor::read_chunk() {
     }
     
     return std::string(buffer.data(), bytes_read);
+}
+
+bool FileProcessor::read_char(char& c) {
+    if (!input_file.good()) {
+        return false;
+    }
+    input_file.read(&c, 1);
+    return input_file.gcount() == 1;
 }
 
 void FileProcessor::write_chunk(const std::string& chunk) {
