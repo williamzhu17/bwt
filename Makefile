@@ -1,5 +1,6 @@
 # Compiler and flags
 CXX := g++
+PYTHON := python3
 CXXFLAGS := -std=c++17 -Wall -Wextra -O3
 LDFLAGS := 
 
@@ -100,10 +101,16 @@ performance: $(PERF_EXECS)
 		./$$t || exit 1; \
 	done
 
+python_performance:
+	@echo "\n=== Running Python Performance Benchmarks ==="
+	@echo "\n--- tests/performance.py ---"
+	@$(PYTHON) -u tests/performance.py || exit 1
+
 clean:
 	@echo "Cleaning..."
 	@rm -rf $(BUILD_DIR) $(MAIN_EXECS) $(TEST_EXECS) $(PERF_EXECS)
 	@rm -rf tests/tmp
+	@rm -rf plots
 
 rebuild: clean all
 

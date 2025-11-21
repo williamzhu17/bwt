@@ -27,6 +27,7 @@ A C++ implementation of the Burrows-Wheeler Transform and its inverse. This proj
 - `make rebuild`: Clean and rebuild everything.
 - `make test`: Build and run the correctness test suite.
 - `make performance`: Build and run the C++ performance benchmarks.
+- `make python_performance`: Run the Python performance benchmarks.
 
 ## Usage
 
@@ -118,14 +119,42 @@ You can also run the benchmark on a custom dataset:
 
 ### Additional Scripts
 
-- `tests/performance_medium.py`: A Python implementation benchmark that mirrors the C++ performance test.
+- `make python_performance`: Runs the Python implementation benchmark (`tests/performance.py`) which mirrors the C++ performance test.
   ```bash
-  python3 tests/performance_medium.py
+  make python_performance
+  # OR
+  python3 tests/performance.py [data_dir] [num_trials]
   ```
 - `test_roundtrip_performance.sh`: A shell script to compare C++ and Python implementations on a specific file.
   ```bash
   ./test_roundtrip_performance.sh data/canterbury_corpus/alice29.txt
   ```
+
+### Generating Performance Plots
+
+You can visualize the performance results by generating bar charts comparing C++ and Python implementations.
+
+1. **Prerequisites**: Install Python dependencies.
+   ```bash
+   # It is recommended to use a virtual environment
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r util/requirements.txt
+   ```
+
+2. **Run the plotting script**:
+   The script requires both the C++ and Python benchmark log files.
+   ```bash
+   python3 util/plot_performance.py --cpp <cpp_log_file> --python <python_log_file> [--output <output_dir>]
+   ```
+
+   **Example:**
+   ```bash
+   # Generate plots from recent logs
+   python3 util/plot_performance.py --cpp 11-20-cpp-performance.log --python 11-20-python-performance.log
+   ```
+
+   The plots will be saved in the `plots/` directory by default.
 
 ### Test Artifacts
 

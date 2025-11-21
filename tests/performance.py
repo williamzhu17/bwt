@@ -2,6 +2,7 @@
 """
 Performance benchmarking script for Python BWT implementation
 Tests all files in Canterbury Corpus with multiple trials
+Mimics functionality of performance.cpp
 """
 
 import sys
@@ -19,7 +20,7 @@ from inverse_bwt import inverse as bwt_inverse
 
 
 # Configuration
-NUM_TRIALS = 5  # Default number of trials
+DEFAULT_NUM_TRIALS = 5
 
 
 class PerformanceMetrics:
@@ -223,6 +224,40 @@ def print_performance_results(test_name, metrics, block_size):
     print("=" * 70)
 
 
+def print_aggregate_statistics(results_by_block_size):
+    """Print aggregate statistics by block size"""
+    print("\n" + "=" * 70)
+    print("Aggregate Statistics by Block Size (Entire Dataset)")
+    print("=" * 70)
+
+    # Table Header
+    print(f"{'Block Size':<12}{'Total Size':<15}{'Total Time':<15}{'Throughput':<18}{'Comp. Ratio':<12}")
+    print("-" * 72)
+
+    for block_size in sorted(results_by_block_size.keys()):
+        metrics_list = results_by_block_size[block_size]
+        
+        total_input_size = sum(m.input_size for m in metrics_list)
+        total_output_size = sum(m.output_size for m in metrics_list)
+        total_time = sum(m.total_mean for m in metrics_list)
+        
+        throughput_mb_s = 0.0
+        if total_time > 0:
+            throughput_mb_s = (total_input_size / (1024.0 * 1024.0)) / total_time
+            
+        compression_ratio = total_output_size / total_input_size if total_input_size > 0 else 0.0
+        
+        throughput_str = f"{throughput_mb_s:.2f} MB/s"
+        
+        print(f"{format_size(block_size):<12}"
+              f"{format_size(total_input_size):<15}"
+              f"{format_time(total_time):<15}"
+              f"{throughput_str:<18}"
+              f"{compression_ratio:.4f}")
+
+    print("=" * 70)
+
+
 def list_files_in_directory(dir_path):
     """List all regular files in a directory"""
     try:
@@ -258,23 +293,47 @@ def main():
         description='Performance benchmark for Python BWT implementation'
     )
     parser.add_argument(
+        'data_dir',
+        nargs='?',
+        default='data/canterbury_corpus',
+        help='Directory containing test files'
+    )
+    parser.add_argument(
         'num_trials',
         nargs='?',
         type=int,
-        default=NUM_TRIALS,
-        help=f'Number of trials per test (default: {NUM_TRIALS})'
+        default=DEFAULT_NUM_TRIALS,
+        help=f'Number of trials per test (default: {DEFAULT_NUM_TRIALS})'
     )
     
     args = parser.parse_args()
     
+    # Handle case where first arg is number (mimic original behavior if user swaps args)
+    # But argparse handles positional args in order. 
+    # If user provides 1 arg: it is assigned to data_dir.
+    # If it looks like an int, maybe they meant num_trials? 
+    # C++ behavior: [data_dir] [num_trials]
+    # Python original: [num_trials]
+    # We will stick to C++ behavior: data_dir first.
+    # But we can try to be smart if data_dir is an int string.
+    
+    data_dir = args.data_dir
     num_trials = args.num_trials
+    
+    # Try to detect if first arg is actually num_trials (if it's a digit and not a dir)
+    if data_dir.isdigit() and not os.path.isdir(data_dir):
+         # This is ambiguous if a folder is named "5". But assuming typical usage.
+         # But strictly following C++: argv[1] is dir.
+         pass
+
     if num_trials < 1:
-        print(f"Invalid number of trials. Using default: {NUM_TRIALS}", file=sys.stderr)
-        num_trials = NUM_TRIALS
+        print(f"Invalid number of trials. Using default: {DEFAULT_NUM_TRIALS}", file=sys.stderr)
+        num_trials = DEFAULT_NUM_TRIALS
     
     print("\n" + "=" * 70)
     print("BWT Performance Benchmark - Canterbury Corpus (Python)")
     print("=" * 70)
+    print(f"Dataset Directory: {data_dir}")
     print(f"Number of trials per test: {num_trials}")
     
     # Create build/tmp directory for temporary files
@@ -282,9 +341,14 @@ def main():
         print("Error: Failed to create build/tmp directory", file=sys.stderr)
         return 1
     
-    # Define data directory and block sizes to test
-    data_dir = "data/canterbury_corpus"
-    block_sizes = [128]  # Start with 128, can add more: [128, 256, 512, 1024]
+    # Define block sizes to test
+    block_sizes = [
+        512,        # 512 bytes
+        1 * 1024,   # 1 KB
+        4 * 1024,   # 4 KB
+        16 * 1024,  # 16 KB
+        64 * 1024   # 64 KB
+    ]
     
     # Check if data directory exists
     if not os.path.isdir(data_dir):
@@ -306,7 +370,9 @@ def main():
     print("=" * 70)
     
     # Run all performance tests
+    results_by_block_size = {}
     completed = 0
+    
     for test_case in test_cases:
         completed += 1
         print(f"\n[{completed}/{len(test_cases)}] Running: {test_case['name']} "
@@ -326,15 +392,20 @@ def main():
         
         # Print results
         print_performance_results(test_case['name'], metrics, test_case['block_size'])
+        
+        # Collect metrics
+        if test_case['block_size'] not in results_by_block_size:
+            results_by_block_size[test_case['block_size']] = []
+        results_by_block_size[test_case['block_size']].append(metrics)
     
     print("\n" + "=" * 70)
     print("Performance Benchmark Complete!")
     print(f"Total tests completed: {completed}")
-    print("=" * 70)
+    
+    print_aggregate_statistics(results_by_block_size)
     
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

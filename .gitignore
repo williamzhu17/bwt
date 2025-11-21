@@ -6,3 +6,5 @@ __pycache__/
 *.o
 
 .DS_Store
+venv/
+plots/
