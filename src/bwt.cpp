@@ -41,26 +41,77 @@ int find_unique_char(const char* file_path) {
     return -1;
 }
 
+// Build suffix array using prefix-doubling algorithm
+std::vector<size_t> build_suffix_array(const std::string& input) {
+    size_t n = input.length();
+
+    std::vector<size_t> suffix_array(n);
+    std::vector<size_t> rank(n);
+    std::vector<size_t> temp(n);
+
+    // Initialize ranks based on first character
+    for (size_t i = 0; i < n; i++) {
+        suffix_array[i] = i;
+        rank[i] = static_cast<unsigned char>(input[i]);
+    }
+
+    // Sort suffixes by first k characters, then 2k, etc.
+    for (size_t k = 1; k < n; k *= 2) {
+        // Compare based on current rank pairs
+        auto cmp = [&](size_t a, size_t b) {
+            if (rank[a] != rank[b]) return rank[a] < rank[b];
+            
+            // Compare next block (k steps ahead)
+            bool a_has_next = (a + k < n);
+            bool b_has_next = (b + k < n);
+            
+            if (a_has_next && b_has_next) {
+                return rank[a + k] < rank[b + k];
+            }
+            
+            // If one doesn't exist (past end), it is considered smaller
+            // If a is past end, a < b. If b is past end, b < a (so a > b)
+            return !a_has_next && b_has_next;
+        };
+
+        std::sort(suffix_array.begin(), suffix_array.end(), cmp);
+
+        // Recompute ranks based on sorted order
+        temp[suffix_array[0]] = 0;
+        for (size_t i = 1; i < n; i++) {
+            temp[suffix_array[i]] = temp[suffix_array[i - 1]] + (cmp(suffix_array[i - 1], suffix_array[i]) ? 1 : 0);
+        }
+
+        rank = temp;
+
+        // If max rank is n-1, all suffixes are distinct
+        if (rank[suffix_array[n - 1]] == n - 1) {
+            break;
+        }
+    }
+
+    return suffix_array;
+}
+
 // Forward BWT transform
 std::string bwt_forward(const std::string& input, char delimiter) {
-    // Add delimiter to input string
-    std::string cur_str = input + delimiter;
-    size_t len = cur_str.length();
-    // Generate all rotations
-    std::vector<std::string> rotations;
-    for (size_t i = 0; i < len; i++) {
-        // Cyclic shift: take last char and put it at front
-        cur_str = cur_str.back() + cur_str.substr(0, len - 1);
-        rotations.push_back(cur_str);
-    }
+    std::string s = input + delimiter;
+    size_t n = s.length();
     
-    // Sort rotations
-    std::sort(rotations.begin(), rotations.end());
+    // Build suffix array for input+delimiter
+    std::vector<size_t> sa = build_suffix_array(s);
     
-    // Extract last character of each sorted rotation
+    // Construct BWT string
     std::string bwt_str;
-    for (const auto& s : rotations) {
-        bwt_str += s.back();
+    bwt_str.resize(n);
+    
+    for (size_t i = 0; i < n; i++) {
+        // BWT[i] is the character preceding the i-th sorted suffix
+        if (sa[i] == 0) {
+            bwt_str[i] = s[n - 1];
+        } else {
+            bwt_str[i] = s[sa[i] - 1];
+        }
     }
     
     return bwt_str;

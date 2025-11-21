@@ -25,15 +25,15 @@ struct PerformanceMetrics {
     std::vector<double> inverse_times;
     std::vector<double> total_times;
     
-    double forward_mean;
-    double forward_stddev;
-    double inverse_mean;
-    double inverse_stddev;
-    double total_mean;
-    double total_stddev;
+    double forward_mean = 0.0;
+    double forward_stddev = 0.0;
+    double inverse_mean = 0.0;
+    double inverse_stddev = 0.0;
+    double total_mean = 0.0;
+    double total_stddev = 0.0;
     
-    size_t input_size;
-    size_t output_size;
+    size_t input_size = 0;
+    size_t output_size = 0;
     
     void calculate_statistics() {
         forward_mean = calculate_mean(forward_times);
@@ -153,10 +153,12 @@ void print_performance_results(const std::string& test_name,
     }
     std::cout << std::endl;
     
-    std::cout << "  Min:    " << format_time(*std::min_element(
-        metrics.forward_times.begin(), metrics.forward_times.end())) << std::endl;
-    std::cout << "  Max:    " << format_time(*std::max_element(
-        metrics.forward_times.begin(), metrics.forward_times.end())) << std::endl;
+    if (!metrics.forward_times.empty()) {
+        std::cout << "  Min:    " << format_time(*std::min_element(
+            metrics.forward_times.begin(), metrics.forward_times.end())) << std::endl;
+        std::cout << "  Max:    " << format_time(*std::max_element(
+            metrics.forward_times.begin(), metrics.forward_times.end())) << std::endl;
+    }
     
     // Inverse BWT results
     std::cout << "\nInverse BWT:" << std::endl;
@@ -166,10 +168,12 @@ void print_performance_results(const std::string& test_name,
     }
     std::cout << std::endl;
     
-    std::cout << "  Min:    " << format_time(*std::min_element(
-        metrics.inverse_times.begin(), metrics.inverse_times.end())) << std::endl;
-    std::cout << "  Max:    " << format_time(*std::max_element(
-        metrics.inverse_times.begin(), metrics.inverse_times.end())) << std::endl;
+    if (!metrics.inverse_times.empty()) {
+        std::cout << "  Min:    " << format_time(*std::min_element(
+            metrics.inverse_times.begin(), metrics.inverse_times.end())) << std::endl;
+        std::cout << "  Max:    " << format_time(*std::max_element(
+            metrics.inverse_times.begin(), metrics.inverse_times.end())) << std::endl;
+    }
     
     // Total roundtrip results
     std::cout << "\nTotal Roundtrip:" << std::endl;
@@ -179,10 +183,12 @@ void print_performance_results(const std::string& test_name,
     }
     std::cout << std::endl;
     
-    std::cout << "  Min:    " << format_time(*std::min_element(
-        metrics.total_times.begin(), metrics.total_times.end())) << std::endl;
-    std::cout << "  Max:    " << format_time(*std::max_element(
-        metrics.total_times.begin(), metrics.total_times.end())) << std::endl;
+    if (!metrics.total_times.empty()) {
+        std::cout << "  Min:    " << format_time(*std::min_element(
+            metrics.total_times.begin(), metrics.total_times.end())) << std::endl;
+        std::cout << "  Max:    " << format_time(*std::max_element(
+            metrics.total_times.begin(), metrics.total_times.end())) << std::endl;
+    }
     
     // Throughput
     double throughput_mb_s = (metrics.input_size / (1024.0 * 1024.0)) / metrics.total_mean;

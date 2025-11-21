@@ -126,8 +126,7 @@ int main() {
     
     // Define the data directory and block sizes to test
     std::string data_dir = "data/canterbury_corpus";
-    // std::vector<size_t> block_sizes = {128, 256, 512, 1024, 4096, 16384};
-    std::vector<size_t> block_sizes = {128};
+    std::vector<size_t> block_sizes = {512, 1 * 1024, 4 * 1024, 16 * 1024, 64 * 1024};
     
     // Dynamically generate test cases for all files in the directory
     std::cout << "Scanning directory: " << data_dir << std::endl;
