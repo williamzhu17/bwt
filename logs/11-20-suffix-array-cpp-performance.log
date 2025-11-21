@@ -1,3 +1,5 @@
+Compiling src/bwt.cpp (test mode)
+Building benchmark build/performance
 
 === Running Performance Benchmarks ===
 
@@ -26,21 +28,21 @@ Compression Ratio: 1.0020
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   29.8284 ms ± 843.5787 μs
-  Min:    29.1069 ms
-  Max:    31.1978 ms
+  Mean:   16.9456 ms ± 5.9828 ms
+  Min:    13.0204 ms
+  Max:    27.1889 ms
 
 Inverse BWT:
-  Mean:   6.6109 ms ± 279.6839 μs
-  Min:    6.2772 ms
-  Max:    6.9572 ms
+  Mean:   7.3549 ms ± 1.5472 ms
+  Min:    6.3001 ms
+  Max:    10.0005 ms
 
 Total Roundtrip:
-  Mean:   36.4393 ms ± 603.9979 μs
-  Min:    35.9467 ms
-  Max:    37.4750 ms
+  Mean:   24.3005 ms ± 7.5294 ms
+  Min:    19.3582 ms
+  Max:    37.1894 ms
 
-Throughput: 3.98 MB/s
+Throughput: 5.97 MB/s
 ======================================================================
 
 [2/55] Running: alice29.txt (block size: 1.00 KB)
@@ -55,21 +57,21 @@ Compression Ratio: 1.0010
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   36.4610 ms ± 2.4261 ms
-  Min:    34.8039 ms
-  Max:    40.6088 ms
+  Mean:   14.3585 ms ± 180.5330 μs
+  Min:    14.1124 ms
+  Max:    14.5817 ms
 
 Inverse BWT:
-  Mean:   5.4853 ms ± 169.9340 μs
-  Min:    5.3610 ms
-  Max:    5.7772 ms
+  Mean:   5.3220 ms ± 63.7142 μs
+  Min:    5.2737 ms
+  Max:    5.4069 ms
 
 Total Roundtrip:
-  Mean:   41.9463 ms ± 2.5833 ms
-  Min:    40.2847 ms
-  Max:    46.3860 ms
+  Mean:   19.6805 ms ± 234.5984 μs
+  Min:    19.3860 ms
+  Max:    19.9560 ms
 
-Throughput: 3.46 MB/s
+Throughput: 7.37 MB/s
 ======================================================================
 
 [3/55] Running: alice29.txt (block size: 4.00 KB)
@@ -79,26 +81,26 @@ Test: alice29.txt
 Block Size: 4.00 KB
 Input Size: 148.52 KB
 Output Size: 148.56 KB
-Compression Ratio: 1.0002
+Compression Ratio: 1.0003
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   67.4495 ms ± 856.1537 μs
-  Min:    66.7670 ms
-  Max:    68.9288 ms
+  Mean:   16.7778 ms ± 226.4128 μs
+  Min:    16.4886 ms
+  Max:    17.0108 ms
 
 Inverse BWT:
-  Mean:   4.4913 ms ± 151.9845 μs
-  Min:    4.3486 ms
-  Max:    4.6868 ms
+  Mean:   4.1806 ms ± 38.6002 μs
+  Min:    4.1477 ms
+  Max:    4.2439 ms
 
 Total Roundtrip:
-  Mean:   71.9408 ms ± 959.4928 μs
-  Min:    71.2176 ms
-  Max:    73.6157 ms
+  Mean:   20.9584 ms ± 242.8135 μs
+  Min:    20.6526 ms
+  Max:    21.2547 ms
 
-Throughput: 2.02 MB/s
+Throughput: 6.92 MB/s
 ======================================================================
 
 [4/55] Running: alice29.txt (block size: 16.00 KB)
@@ -107,27 +109,27 @@ Throughput: 2.02 MB/s
 Test: alice29.txt
 Block Size: 16.00 KB
 Input Size: 148.52 KB
-Output Size: 148.53 KB
+Output Size: 148.54 KB
 Compression Ratio: 1.0001
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   180.1449 ms ± 30.4281 ms
-  Min:    161.3325 ms
-  Max:    233.5509 ms
+  Mean:   19.0325 ms ± 298.4610 μs
+  Min:    18.6645 ms
+  Max:    19.4468 ms
 
 Inverse BWT:
-  Mean:   4.0117 ms ± 237.5928 μs
-  Min:    3.8126 ms
-  Max:    4.3043 ms
+  Mean:   3.6803 ms ± 67.2002 μs
+  Min:    3.6167 ms
+  Max:    3.7782 ms
 
 Total Roundtrip:
-  Mean:   184.1566 ms ± 30.5754 ms
-  Min:    165.5104 ms
-  Max:    237.8552 ms
+  Mean:   22.7128 ms ± 294.8575 μs
+  Min:    22.4428 ms
+  Max:    23.1460 ms
 
-Throughput: 0.79 MB/s
+Throughput: 6.39 MB/s
 ======================================================================
 
 [5/55] Running: alice29.txt (block size: 64.00 KB)
@@ -142,21 +144,21 @@ Compression Ratio: 1.0000
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   2.6236 s ± 835.9583 ms
-  Min:    1.5886 s
-  Max:    3.5260 s
+  Mean:   22.6908 ms ± 167.0511 μs
+  Min:    22.5008 ms
+  Max:    22.8819 ms
 
 Inverse BWT:
-  Mean:   4.1640 ms ± 480.1888 μs
-  Min:    3.6626 ms
-  Max:    4.9447 ms
+  Mean:   3.6649 ms ± 189.2848 μs
+  Min:    3.5208 ms
+  Max:    3.9610 ms
 
 Total Roundtrip:
-  Mean:   2.6278 s ± 836.2139 ms
-  Min:    1.5928 s
-  Max:    3.5309 s
+  Mean:   26.3557 ms ± 151.1721 μs
+  Min:    26.1608 ms
+  Max:    26.5442 ms
 
-Throughput: 0.06 MB/s
+Throughput: 5.50 MB/s
 ======================================================================
 
 [6/55] Running: asyoulik.txt (block size: 512 B)
@@ -165,27 +167,27 @@ Throughput: 0.06 MB/s
 Test: asyoulik.txt
 Block Size: 512 B
 Input Size: 122.25 KB
-Output Size: 122.48 KB
+Output Size: 122.49 KB
 Compression Ratio: 1.0020
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   26.1113 ms ± 3.4278 ms
-  Min:    23.7177 ms
-  Max:    32.1030 ms
+  Mean:   10.7311 ms ± 328.8855 μs
+  Min:    10.4785 ms
+  Max:    11.3034 ms
 
 Inverse BWT:
-  Mean:   6.5056 ms ± 1.1809 ms
-  Min:    5.3965 ms
-  Max:    7.9104 ms
+  Mean:   5.5265 ms ± 83.8384 μs
+  Min:    5.4325 ms
+  Max:    5.6515 ms
 
 Total Roundtrip:
-  Mean:   32.6169 ms ± 3.4299 ms
-  Min:    29.3514 ms
-  Max:    38.0457 ms
+  Mean:   16.2576 ms ± 404.5643 μs
+  Min:    15.9628 ms
+  Max:    16.9549 ms
 
-Throughput: 3.66 MB/s
+Throughput: 7.34 MB/s
 ======================================================================
 
 [7/55] Running: asyoulik.txt (block size: 1.00 KB)
@@ -200,21 +202,21 @@ Compression Ratio: 1.0010
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   31.1033 ms ± 2.9364 ms
-  Min:    28.8928 ms
-  Max:    35.6236 ms
+  Mean:   11.6647 ms ± 79.8111 μs
+  Min:    11.5349 ms
+  Max:    11.7357 ms
 
 Inverse BWT:
-  Mean:   5.5320 ms ± 1.5215 ms
-  Min:    4.5167 ms
-  Max:    8.1390 ms
+  Mean:   4.5155 ms ± 39.0062 μs
+  Min:    4.4740 ms
+  Max:    4.5646 ms
 
 Total Roundtrip:
-  Mean:   36.6352 ms ± 3.1015 ms
-  Min:    33.7449 ms
-  Max:    41.2177 ms
+  Mean:   16.1802 ms ± 110.0335 μs
+  Min:    16.0089 ms
+  Max:    16.3004 ms
 
-Throughput: 3.26 MB/s
+Throughput: 7.38 MB/s
 ======================================================================
 
 [8/55] Running: asyoulik.txt (block size: 4.00 KB)
@@ -224,26 +226,26 @@ Test: asyoulik.txt
 Block Size: 4.00 KB
 Input Size: 122.25 KB
 Output Size: 122.28 KB
-Compression Ratio: 1.0002
+Compression Ratio: 1.0003
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   60.1868 ms ± 4.7043 ms
-  Min:    56.4123 ms
-  Max:    66.2840 ms
+  Mean:   13.3977 ms ± 131.4810 μs
+  Min:    13.2794 ms
+  Max:    13.6163 ms
 
 Inverse BWT:
-  Mean:   3.5158 ms ± 63.2111 μs
-  Min:    3.4213 ms
-  Max:    3.5691 ms
+  Mean:   3.5200 ms ± 89.1505 μs
+  Min:    3.3792 ms
+  Max:    3.6197 ms
 
 Total Roundtrip:
-  Mean:   63.7026 ms ± 4.7495 ms
-  Min:    59.9483 ms
-  Max:    69.8531 ms
+  Mean:   16.9177 ms ± 171.0307 μs
+  Min:    16.6586 ms
+  Max:    17.1210 ms
 
-Throughput: 1.87 MB/s
+Throughput: 7.06 MB/s
 ======================================================================
 
 [9/55] Running: asyoulik.txt (block size: 16.00 KB)
@@ -258,21 +260,21 @@ Compression Ratio: 1.0001
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   172.2560 ms ± 69.4360 ms
-  Min:    136.6157 ms
-  Max:    296.2829 ms
+  Mean:   15.5849 ms ± 125.7839 μs
+  Min:    15.4142 ms
+  Max:    15.7626 ms
 
 Inverse BWT:
-  Mean:   3.4328 ms ± 217.0984 μs
-  Min:    3.2895 ms
-  Max:    3.8135 ms
+  Mean:   3.1022 ms ± 61.3463 μs
+  Min:    3.0548 ms
+  Max:    3.2083 ms
 
 Total Roundtrip:
-  Mean:   175.6888 ms ± 69.4132 ms
-  Min:    140.4291 ms
-  Max:    299.6898 ms
+  Mean:   18.6870 ms ± 144.6686 μs
+  Min:    18.4690 ms
+  Max:    18.8410 ms
 
-Throughput: 0.68 MB/s
+Throughput: 6.39 MB/s
 ======================================================================
 
 [10/55] Running: asyoulik.txt (block size: 64.00 KB)
@@ -287,21 +289,21 @@ Compression Ratio: 1.0000
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   1.2487 s ± 730.1760 ms
-  Min:    642.0199 ms
-  Max:    2.1299 s
+  Mean:   18.3238 ms ± 406.0076 μs
+  Min:    17.9555 ms
+  Max:    18.8365 ms
 
 Inverse BWT:
-  Mean:   3.1179 ms ± 191.6131 μs
-  Min:    2.9343 ms
-  Max:    3.3807 ms
+  Mean:   3.0131 ms ± 93.6616 μs
+  Min:    2.9060 ms
+  Max:    3.1607 ms
 
 Total Roundtrip:
-  Mean:   1.2518 s ± 730.2335 ms
-  Min:    644.9542 ms
-  Max:    2.1331 s
+  Mean:   21.3369 ms ± 475.3318 μs
+  Min:    20.9255 ms
+  Max:    21.8617 ms
 
-Throughput: 0.10 MB/s
+Throughput: 5.60 MB/s
 ======================================================================
 
 [11/55] Running: cp.html (block size: 512 B)
@@ -310,27 +312,27 @@ Throughput: 0.10 MB/s
 Test: cp.html
 Block Size: 512 B
 Input Size: 24.03 KB
-Output Size: 24.07 KB
+Output Size: 24.08 KB
 Compression Ratio: 1.0020
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   5.0999 ms ± 207.3539 μs
-  Min:    4.8206 ms
-  Max:    5.3506 ms
+  Mean:   2.4791 ms ± 120.7217 μs
+  Min:    2.3460 ms
+  Max:    2.6602 ms
 
 Inverse BWT:
-  Mean:   1.2422 ms ± 104.3382 μs
-  Min:    1.1438 ms
-  Max:    1.4175 ms
+  Mean:   1.2328 ms ± 63.2364 μs
+  Min:    1.1770 ms
+  Max:    1.3360 ms
 
 Total Roundtrip:
-  Mean:   6.3421 ms ± 251.5885 μs
-  Min:    5.9644 ms
-  Max:    6.5492 ms
+  Mean:   3.7119 ms ± 106.5827 μs
+  Min:    3.6078 ms
+  Max:    3.8608 ms
 
-Throughput: 3.70 MB/s
+Throughput: 6.32 MB/s
 ======================================================================
 
 [12/55] Running: cp.html (block size: 1.00 KB)
@@ -340,26 +342,26 @@ Test: cp.html
 Block Size: 1.00 KB
 Input Size: 24.03 KB
 Output Size: 24.05 KB
-Compression Ratio: 1.0010
+Compression Ratio: 1.0011
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   6.1132 ms ± 441.3354 μs
-  Min:    5.7506 ms
-  Max:    6.8201 ms
+  Mean:   2.6629 ms ± 65.0821 μs
+  Min:    2.6031 ms
+  Max:    2.7683 ms
 
 Inverse BWT:
-  Mean:   1.0481 ms ± 78.0605 μs
-  Min:    957.3340 μs
-  Max:    1.1343 ms
+  Mean:   1.0032 ms ± 38.3840 μs
+  Min:    966.7500 μs
+  Max:    1.0655 ms
 
 Total Roundtrip:
-  Mean:   7.1613 ms ± 469.9748 μs
-  Min:    6.7080 ms
-  Max:    7.8757 ms
+  Mean:   3.6661 ms ± 68.7665 μs
+  Min:    3.5699 ms
+  Max:    3.7571 ms
 
-Throughput: 3.28 MB/s
+Throughput: 6.40 MB/s
 ======================================================================
 
 [13/55] Running: cp.html (block size: 4.00 KB)
@@ -374,21 +376,21 @@ Compression Ratio: 1.0003
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   11.6791 ms ± 1.6959 ms
-  Min:    10.7948 ms
-  Max:    14.7090 ms
+  Mean:   3.0864 ms ± 93.9943 μs
+  Min:    3.0023 ms
+  Max:    3.2426 ms
 
 Inverse BWT:
-  Mean:   803.2586 μs ± 18.6692 μs
-  Min:    773.7090 μs
-  Max:    821.1670 μs
+  Mean:   798.2584 μs ± 31.3266 μs
+  Min:    760.0420 μs
+  Max:    838.5000 μs
 
 Total Roundtrip:
-  Mean:   12.4824 ms ± 1.7018 ms
-  Min:    11.5685 ms
-  Max:    15.5218 ms
+  Mean:   3.8847 ms ± 83.6883 μs
+  Min:    3.7914 ms
+  Max:    4.0027 ms
 
-Throughput: 1.88 MB/s
+Throughput: 6.04 MB/s
 ======================================================================
 
 [14/55] Running: cp.html (block size: 16.00 KB)
@@ -403,21 +405,21 @@ Compression Ratio: 1.0001
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   41.9848 ms ± 29.1669 ms
-  Min:    28.0897 ms
-  Max:    94.1502 ms
+  Mean:   3.4862 ms ± 100.0237 μs
+  Min:    3.3582 ms
+  Max:    3.5763 ms
 
 Inverse BWT:
-  Mean:   1.0896 ms ± 214.2140 μs
-  Min:    939.0830 μs
-  Max:    1.4601 ms
+  Mean:   802.9500 μs ± 178.5551 μs
+  Min:    684.4580 μs
+  Max:    1.1156 ms
 
 Total Roundtrip:
-  Mean:   43.0744 ms ± 29.3751 ms
-  Min:    29.0287 ms
-  Max:    95.6103 ms
+  Mean:   4.2892 ms ± 132.1674 μs
+  Min:    4.1265 ms
+  Max:    4.4738 ms
 
-Throughput: 0.54 MB/s
+Throughput: 5.47 MB/s
 ======================================================================
 
 [15/55] Running: cp.html (block size: 64.00 KB)
@@ -427,26 +429,26 @@ Test: cp.html
 Block Size: 64.00 KB
 Input Size: 24.03 KB
 Output Size: 24.03 KB
-Compression Ratio: 1.0000
+Compression Ratio: 1.0001
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   73.2420 ms ± 71.0748 ms
-  Min:    36.8753 ms
-  Max:    199.6899 ms
+  Mean:   3.8180 ms ± 89.5848 μs
+  Min:    3.7320 ms
+  Max:    3.9543 ms
 
 Inverse BWT:
-  Mean:   1.0708 ms ± 495.8357 μs
-  Min:    701.5830 μs
-  Max:    1.7426 ms
+  Mean:   670.0084 μs ± 27.4197 μs
+  Min:    647.0000 μs
+  Max:    703.6250 μs
 
 Total Roundtrip:
-  Mean:   74.3128 ms ± 71.4826 ms
-  Min:    37.5849 ms
-  Max:    201.4325 ms
+  Mean:   4.4880 ms ± 105.2622 μs
+  Min:    4.3790 ms
+  Max:    4.6502 ms
 
-Throughput: 0.32 MB/s
+Throughput: 5.23 MB/s
 ======================================================================
 
 [16/55] Running: fields.c (block size: 512 B)
@@ -456,26 +458,26 @@ Test: fields.c
 Block Size: 512 B
 Input Size: 10.89 KB
 Output Size: 10.91 KB
-Compression Ratio: 1.0020
+Compression Ratio: 1.0021
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   2.4196 ms ± 219.9088 μs
-  Min:    2.2316 ms
-  Max:    2.6928 ms
+  Mean:   1.2743 ms ± 132.2669 μs
+  Min:    1.1743 ms
+  Max:    1.4837 ms
 
 Inverse BWT:
-  Mean:   651.9334 μs ± 75.4739 μs
-  Min:    579.2910 μs
-  Max:    772.1670 μs
+  Mean:   607.6834 μs ± 31.8360 μs
+  Min:    568.9170 μs
+  Max:    651.1250 μs
 
 Total Roundtrip:
-  Mean:   3.0716 ms ± 229.3614 μs
-  Min:    2.8109 ms
-  Max:    3.3645 ms
+  Mean:   1.8820 ms ± 141.7726 μs
+  Min:    1.7598 ms
+  Max:    2.0970 ms
 
-Throughput: 3.46 MB/s
+Throughput: 5.65 MB/s
 ======================================================================
 
 [17/55] Running: fields.c (block size: 1.00 KB)
@@ -485,26 +487,26 @@ Test: fields.c
 Block Size: 1.00 KB
 Input Size: 10.89 KB
 Output Size: 10.90 KB
-Compression Ratio: 1.0010
+Compression Ratio: 1.0011
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   2.8386 ms ± 213.0002 μs
-  Min:    2.6780 ms
-  Max:    3.0768 ms
+  Mean:   1.4586 ms ± 111.7966 μs
+  Min:    1.3265 ms
+  Max:    1.5925 ms
 
 Inverse BWT:
-  Mean:   524.9248 μs ± 30.4415 μs
-  Min:    491.4160 μs
-  Max:    551.6250 μs
+  Mean:   534.4166 μs ± 13.3432 μs
+  Min:    522.8330 μs
+  Max:    556.5840 μs
 
 Total Roundtrip:
-  Mean:   3.3636 ms ± 232.0501 μs
-  Min:    3.1708 ms
-  Max:    3.6277 ms
+  Mean:   1.9931 ms ± 116.2738 μs
+  Min:    1.8600 ms
+  Max:    2.1177 ms
 
-Throughput: 3.16 MB/s
+Throughput: 5.34 MB/s
 ======================================================================
 
 [18/55] Running: fields.c (block size: 4.00 KB)
@@ -514,26 +516,26 @@ Test: fields.c
 Block Size: 4.00 KB
 Input Size: 10.89 KB
 Output Size: 10.89 KB
-Compression Ratio: 1.0003
+Compression Ratio: 1.0004
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   5.4606 ms ± 376.4659 μs
-  Min:    5.1694 ms
-  Max:    6.0325 ms
+  Mean:   1.5560 ms ± 64.3992 μs
+  Min:    1.5083 ms
+  Max:    1.6662 ms
 
 Inverse BWT:
-  Mean:   432.0086 μs ± 66.8416 μs
-  Min:    391.0840 μs
-  Max:    550.3750 μs
+  Mean:   447.7416 μs ± 22.9763 μs
+  Min:    424.9160 μs
+  Max:    481.3750 μs
 
 Total Roundtrip:
-  Mean:   5.8926 ms ± 437.4827 μs
-  Min:    5.5673 ms
-  Max:    6.5828 ms
+  Mean:   2.0038 ms ± 85.2188 μs
+  Min:    1.9381 ms
+  Max:    2.1476 ms
 
-Throughput: 1.80 MB/s
+Throughput: 5.31 MB/s
 ======================================================================
 
 [19/55] Running: fields.c (block size: 16.00 KB)
@@ -543,26 +545,26 @@ Test: fields.c
 Block Size: 16.00 KB
 Input Size: 10.89 KB
 Output Size: 10.89 KB
-Compression Ratio: 1.0001
+Compression Ratio: 1.0002
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   18.7060 ms ± 8.8483 ms
-  Min:    14.5078 ms
-  Max:    34.5221 ms
+  Mean:   1.7203 ms ± 58.1537 μs
+  Min:    1.6659 ms
+  Max:    1.8115 ms
 
 Inverse BWT:
-  Mean:   277.2752 μs ± 17.9777 μs
-  Min:    249.6670 μs
-  Max:    298.4170 μs
+  Mean:   442.0084 μs ± 84.0010 μs
+  Min:    378.7500 μs
+  Max:    588.3330 μs
 
 Total Roundtrip:
-  Mean:   18.9833 ms ± 8.8521 ms
-  Min:    14.7806 ms
-  Max:    34.8062 ms
+  Mean:   2.1623 ms ± 92.2343 μs
+  Min:    2.0761 ms
+  Max:    2.2732 ms
 
-Throughput: 0.56 MB/s
+Throughput: 4.92 MB/s
 ======================================================================
 
 [20/55] Running: fields.c (block size: 64.00 KB)
@@ -572,26 +574,26 @@ Test: fields.c
 Block Size: 64.00 KB
 Input Size: 10.89 KB
 Output Size: 10.89 KB
-Compression Ratio: 1.0001
+Compression Ratio: 1.0002
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   14.5325 ms ± 190.6912 μs
-  Min:    14.3891 ms
-  Max:    14.8541 ms
+  Mean:   1.7307 ms ± 85.2858 μs
+  Min:    1.6706 ms
+  Max:    1.8664 ms
 
 Inverse BWT:
-  Mean:   289.1418 μs ± 38.9699 μs
-  Min:    264.6670 μs
-  Max:    357.9580 μs
+  Mean:   391.3084 μs ± 33.7950 μs
+  Min:    353.8330 μs
+  Max:    445.4580 μs
 
 Total Roundtrip:
-  Mean:   14.8217 ms ± 198.8326 μs
-  Min:    14.6571 ms
-  Max:    15.1283 ms
+  Mean:   2.1220 ms ± 100.4098 μs
+  Min:    2.0245 ms
+  Max:    2.2492 ms
 
-Throughput: 0.72 MB/s
+Throughput: 5.01 MB/s
 ======================================================================
 
 [21/55] Running: grammar.lsp (block size: 512 B)
@@ -601,26 +603,26 @@ Test: grammar.lsp
 Block Size: 512 B
 Input Size: 3.63 KB
 Output Size: 3.64 KB
-Compression Ratio: 1.0021
+Compression Ratio: 1.0024
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   975.9914 μs ± 379.8164 μs
-  Min:    781.8330 μs
-  Max:    1.6533 ms
+  Mean:   543.5334 μs ± 120.3990 μs
+  Min:    453.9170 μs
+  Max:    741.5420 μs
 
 Inverse BWT:
-  Mean:   219.5168 μs ± 46.4865 μs
-  Min:    182.7910 μs
-  Max:    300.3330 μs
+  Mean:   243.4668 μs ± 16.9630 μs
+  Min:    225.7090 μs
+  Max:    268.2500 μs
 
 Total Roundtrip:
-  Mean:   1.1955 ms ± 425.4691 μs
-  Min:    964.6240 μs
-  Max:    1.9537 ms
+  Mean:   787.0002 μs ± 136.2556 μs
+  Min:    679.6260 μs
+  Max:    1.0098 ms
 
-Throughput: 2.97 MB/s
+Throughput: 4.51 MB/s
 ======================================================================
 
 [22/55] Running: grammar.lsp (block size: 1.00 KB)
@@ -630,26 +632,26 @@ Test: grammar.lsp
 Block Size: 1.00 KB
 Input Size: 3.63 KB
 Output Size: 3.64 KB
-Compression Ratio: 1.0011
+Compression Ratio: 1.0013
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   1.0408 ms ± 187.3728 μs
-  Min:    891.1670 μs
-  Max:    1.3478 ms
+  Mean:   560.4166 μs ± 56.1286 μs
+  Min:    500.8750 μs
+  Max:    641.3330 μs
 
 Inverse BWT:
-  Mean:   269.9082 μs ± 208.2640 μs
-  Min:    152.2080 μs
-  Max:    640.6660 μs
+  Mean:   225.7416 μs ± 25.7590 μs
+  Min:    190.9160 μs
+  Max:    262.7090 μs
 
 Total Roundtrip:
-  Mean:   1.3108 ms ± 390.6035 μs
-  Min:    1.0434 ms
-  Max:    1.9884 ms
+  Mean:   786.1582 μs ± 76.8595 μs
+  Min:    705.7080 μs
+  Max:    904.0420 μs
 
-Throughput: 2.71 MB/s
+Throughput: 4.51 MB/s
 ======================================================================
 
 [23/55] Running: grammar.lsp (block size: 4.00 KB)
@@ -658,27 +660,27 @@ Throughput: 2.71 MB/s
 Test: grammar.lsp
 Block Size: 4.00 KB
 Input Size: 3.63 KB
-Output Size: 3.63 KB
-Compression Ratio: 1.0003
+Output Size: 3.64 KB
+Compression Ratio: 1.0005
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   3.2107 ms ± 1.6755 ms
-  Min:    1.8581 ms
-  Max:    5.9690 ms
+  Mean:   574.9334 μs ± 30.7969 μs
+  Min:    533.5000 μs
+  Max:    605.7080 μs
 
 Inverse BWT:
-  Mean:   228.5664 μs ± 86.6115 μs
-  Min:    164.4580 μs
-  Max:    377.2910 μs
+  Mean:   185.4998 μs ± 34.6128 μs
+  Min:    162.7500 μs
+  Max:    243.0830 μs
 
 Total Roundtrip:
-  Mean:   3.4393 ms ± 1.7604 ms
-  Min:    2.0226 ms
-  Max:    6.3463 ms
+  Mean:   760.4332 μs ± 56.5605 μs
+  Min:    696.2500 μs
+  Max:    841.4580 μs
 
-Throughput: 1.03 MB/s
+Throughput: 4.67 MB/s
 ======================================================================
 
 [24/55] Running: grammar.lsp (block size: 16.00 KB)
@@ -687,27 +689,27 @@ Throughput: 1.03 MB/s
 Test: grammar.lsp
 Block Size: 16.00 KB
 Input Size: 3.63 KB
-Output Size: 3.63 KB
-Compression Ratio: 1.0003
+Output Size: 3.64 KB
+Compression Ratio: 1.0005
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   1.9796 ms ± 188.7601 μs
-  Min:    1.8129 ms
-  Max:    2.2896 ms
+  Mean:   535.3330 μs ± 19.4547 μs
+  Min:    513.1660 μs
+  Max:    562.3330 μs
 
 Inverse BWT:
-  Mean:   208.8832 μs ± 66.3465 μs
-  Min:    162.1250 μs
-  Max:    325.8750 μs
+  Mean:   185.5416 μs ± 49.1454 μs
+  Min:    158.3330 μs
+  Max:    273.1250 μs
 
 Total Roundtrip:
-  Mean:   2.1885 ms ± 175.7800 μs
-  Min:    2.0347 ms
-  Max:    2.4826 ms
+  Mean:   720.8746 μs ± 40.9089 μs
+  Min:    680.9160 μs
+  Max:    786.2910 μs
 
-Throughput: 1.62 MB/s
+Throughput: 4.92 MB/s
 ======================================================================
 
 [25/55] Running: grammar.lsp (block size: 64.00 KB)
@@ -716,27 +718,27 @@ Throughput: 1.62 MB/s
 Test: grammar.lsp
 Block Size: 64.00 KB
 Input Size: 3.63 KB
-Output Size: 3.63 KB
-Compression Ratio: 1.0003
+Output Size: 3.64 KB
+Compression Ratio: 1.0005
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   2.1055 ms ± 285.0019 μs
-  Min:    1.9210 ms
-  Max:    2.5813 ms
+  Mean:   531.5000 μs ± 11.4184 μs
+  Min:    523.7080 μs
+  Max:    551.3330 μs
 
 Inverse BWT:
-  Mean:   216.5168 μs ± 48.9016 μs
-  Min:    171.0420 μs
-  Max:    294.1250 μs
+  Mean:   172.5334 μs ± 13.2034 μs
+  Min:    153.0420 μs
+  Max:    189.2920 μs
 
 Total Roundtrip:
-  Mean:   2.3220 ms ± 290.0084 μs
-  Min:    2.0921 ms
-  Max:    2.7961 ms
+  Mean:   704.0334 μs ± 16.6669 μs
+  Min:    676.7500 μs
+  Max:    720.0830 μs
 
-Throughput: 1.53 MB/s
+Throughput: 5.04 MB/s
 ======================================================================
 
 [26/55] Running: kennedy.xls (block size: 512 B)
@@ -744,28 +746,7 @@ Throughput: 1.53 MB/s
 ======================================================================
 Test: kennedy.xls
 Block Size: 512 B
-Input Size: 1005.61 KB
-Output Size: 1007.57 KB
-Compression Ratio: 1.0020
-----------------------------------------------------------------------
-Trials: 5
-----------------------------------------------------------------------
-Forward BWT:
-  Mean:   191.7300 ms ± 2.3285 ms
-  Min:    189.1215 ms
-  Max:    194.9086 ms
-
-Inverse BWT:
-  Mean:   29.5706 ms ± 313.5478 μs
-  Min:    29.1833 ms
-  Max:    30.0155 ms
-
-Total Roundtrip:
-  Mean:   221.3006 ms ± 2.3594 ms
-  Min:    218.8044 ms
-  Max:    224.2987 ms
-
-Throughput: 4.44 MB/s
+Status: FAILED - No successful trials recorded.
 ======================================================================
 
 [27/55] Running: kennedy.xls (block size: 1.00 KB)
@@ -773,28 +754,7 @@ Throughput: 4.44 MB/s
 ======================================================================
 Test: kennedy.xls
 Block Size: 1.00 KB
-Input Size: 1005.61 KB
-Output Size: 1006.59 KB
-Compression Ratio: 1.0010
-----------------------------------------------------------------------
-Trials: 5
-----------------------------------------------------------------------
-Forward BWT:
-  Mean:   266.4234 ms ± 78.6900 ms
-  Min:    226.7795 ms
-  Max:    406.8803 ms
-
-Inverse BWT:
-  Mean:   45.2933 ms ± 26.4936 ms
-  Min:    27.5190 ms
-  Max:    88.8522 ms
-
-Total Roundtrip:
-  Mean:   311.7167 ms ± 86.4348 ms
-  Min:    255.9346 ms
-  Max:    459.2730 ms
-
-Throughput: 3.15 MB/s
+Status: FAILED - No successful trials recorded.
 ======================================================================
 
 [28/55] Running: kennedy.xls (block size: 4.00 KB)
@@ -802,28 +762,7 @@ Throughput: 3.15 MB/s
 ======================================================================
 Test: kennedy.xls
 Block Size: 4.00 KB
-Input Size: 1005.61 KB
-Output Size: 1005.86 KB
-Compression Ratio: 1.0002
-----------------------------------------------------------------------
-Trials: 5
-----------------------------------------------------------------------
-Forward BWT:
-  Mean:   477.4533 ms ± 41.9616 ms
-  Min:    436.5939 ms
-  Max:    534.6415 ms
-
-Inverse BWT:
-  Mean:   22.4463 ms ± 8.1849 ms
-  Min:    18.5304 ms
-  Max:    37.0793 ms
-
-Total Roundtrip:
-  Mean:   499.8996 ms ± 40.7850 ms
-  Min:    455.1531 ms
-  Max:    553.1719 ms
-
-Throughput: 1.96 MB/s
+Status: FAILED - No successful trials recorded.
 ======================================================================
 
 [29/55] Running: kennedy.xls (block size: 16.00 KB)
@@ -831,28 +770,7 @@ Throughput: 1.96 MB/s
 ======================================================================
 Test: kennedy.xls
 Block Size: 16.00 KB
-Input Size: 1005.61 KB
-Output Size: 1005.67 KB
-Compression Ratio: 1.0001
-----------------------------------------------------------------------
-Trials: 5
-----------------------------------------------------------------------
-Forward BWT:
-  Mean:   1.1585 s ± 94.5793 ms
-  Min:    1.1093 s
-  Max:    1.3274 s
-
-Inverse BWT:
-  Mean:   11.0411 ms ± 115.7130 μs
-  Min:    10.8976 ms
-  Max:    11.1578 ms
-
-Total Roundtrip:
-  Mean:   1.1695 s ± 94.5268 ms
-  Min:    1.1203 s
-  Max:    1.3383 s
-
-Throughput: 0.84 MB/s
+Status: FAILED - No successful trials recorded.
 ======================================================================
 
 [30/55] Running: kennedy.xls (block size: 64.00 KB)
@@ -860,28 +778,7 @@ Throughput: 0.84 MB/s
 ======================================================================
 Test: kennedy.xls
 Block Size: 64.00 KB
-Input Size: 1005.61 KB
-Output Size: 1005.62 KB
-Compression Ratio: 1.0000
-----------------------------------------------------------------------
-Trials: 5
-----------------------------------------------------------------------
-Forward BWT:
-  Mean:   6.0801 s ± 447.3328 ms
-  Min:    5.5658 s
-  Max:    6.6261 s
-
-Inverse BWT:
-  Mean:   8.7932 ms ± 429.5897 μs
-  Min:    8.3785 ms
-  Max:    9.4741 ms
-
-Total Roundtrip:
-  Mean:   6.0889 s ± 447.3755 ms
-  Min:    5.5746 s
-  Max:    6.6345 s
-
-Throughput: 0.16 MB/s
+Status: FAILED - No successful trials recorded.
 ======================================================================
 
 [31/55] Running: lcet10.txt (block size: 512 B)
@@ -896,21 +793,21 @@ Compression Ratio: 1.0020
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   84.0489 ms ± 1.1802 ms
-  Min:    82.1368 ms
-  Max:    85.0440 ms
+  Mean:   36.8631 ms ± 644.7530 μs
+  Min:    36.2068 ms
+  Max:    37.7494 ms
 
 Inverse BWT:
-  Mean:   18.0849 ms ± 338.4014 μs
-  Min:    17.5753 ms
-  Max:    18.4027 ms
+  Mean:   17.5244 ms ± 241.4412 μs
+  Min:    17.2122 ms
+  Max:    17.8877 ms
 
 Total Roundtrip:
-  Mean:   102.1338 ms ± 1.2263 ms
-  Min:    100.3817 ms
-  Max:    103.3302 ms
+  Mean:   54.3875 ms ± 816.8322 μs
+  Min:    53.4190 ms
+  Max:    55.2731 ms
 
-Throughput: 3.98 MB/s
+Throughput: 7.48 MB/s
 ======================================================================
 
 [32/55] Running: lcet10.txt (block size: 1.00 KB)
@@ -925,21 +822,21 @@ Compression Ratio: 1.0010
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   134.0404 ms ± 81.0438 ms
-  Min:    95.8112 ms
-  Max:    278.9801 ms
+  Mean:   40.0643 ms ± 120.9081 μs
+  Min:    39.9606 ms
+  Max:    40.2667 ms
 
 Inverse BWT:
-  Mean:   20.7836 ms ± 12.3923 ms
-  Min:    14.8880 ms
-  Max:    42.9400 ms
+  Mean:   14.8124 ms ± 129.0152 μs
+  Min:    14.6762 ms
+  Max:    14.9518 ms
 
 Total Roundtrip:
-  Mean:   154.8240 ms ± 93.4351 ms
-  Min:    110.7054 ms
-  Max:    321.9201 ms
+  Mean:   54.8767 ms ± 126.8851 μs
+  Min:    54.7164 ms
+  Max:    55.0374 ms
 
-Throughput: 2.63 MB/s
+Throughput: 7.42 MB/s
 ======================================================================
 
 [33/55] Running: lcet10.txt (block size: 4.00 KB)
@@ -948,27 +845,27 @@ Throughput: 2.63 MB/s
 Test: lcet10.txt
 Block Size: 4.00 KB
 Input Size: 416.75 KB
-Output Size: 416.85 KB
+Output Size: 416.86 KB
 Compression Ratio: 1.0002
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   196.1953 ms ± 7.5963 ms
-  Min:    183.5597 ms
-  Max:    201.9674 ms
+  Mean:   47.4648 ms ± 357.6426 μs
+  Min:    47.1626 ms
+  Max:    48.0265 ms
 
 Inverse BWT:
-  Mean:   11.5507 ms ± 400.7063 μs
-  Min:    11.1252 ms
-  Max:    12.0118 ms
+  Mean:   11.4465 ms ± 198.5606 μs
+  Min:    11.2664 ms
+  Max:    11.7331 ms
 
 Total Roundtrip:
-  Mean:   207.7460 ms ± 7.4686 ms
-  Min:    195.5715 ms
-  Max:    213.7148 ms
+  Mean:   58.9113 ms ± 475.9194 μs
+  Min:    58.4370 ms
+  Max:    59.5987 ms
 
-Throughput: 1.96 MB/s
+Throughput: 6.91 MB/s
 ======================================================================
 
 [34/55] Running: lcet10.txt (block size: 16.00 KB)
@@ -983,21 +880,21 @@ Compression Ratio: 1.0001
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   582.9217 ms ± 141.1576 ms
-  Min:    493.5312 ms
-  Max:    832.9198 ms
+  Mean:   55.4859 ms ± 635.4978 μs
+  Min:    54.6251 ms
+  Max:    56.2363 ms
 
 Inverse BWT:
-  Mean:   9.4488 ms ± 485.8270 μs
-  Min:    9.1360 ms
-  Max:    10.2991 ms
+  Mean:   10.5859 ms ± 454.3206 μs
+  Min:    10.1628 ms
+  Max:    11.0857 ms
 
 Total Roundtrip:
-  Mean:   592.3704 ms ± 140.9939 ms
-  Min:    502.9091 ms
-  Max:    842.0669 ms
+  Mean:   66.0717 ms ± 403.9645 μs
+  Min:    65.6018 ms
+  Max:    66.4892 ms
 
-Throughput: 0.69 MB/s
+Throughput: 6.16 MB/s
 ======================================================================
 
 [35/55] Running: lcet10.txt (block size: 64.00 KB)
@@ -1012,21 +909,21 @@ Compression Ratio: 1.0000
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   3.6878 s ± 1.3131 s
-  Min:    2.3503 s
-  Max:    5.3181 s
+  Mean:   66.4316 ms ± 1.5590 ms
+  Min:    64.6439 ms
+  Max:    68.7782 ms
 
 Inverse BWT:
-  Mean:   5.9139 ms ± 357.6175 μs
-  Min:    5.6522 ms
-  Max:    6.5255 ms
+  Mean:   10.3423 ms ± 244.4574 μs
+  Min:    10.0893 ms
+  Max:    10.7236 ms
 
 Total Roundtrip:
-  Mean:   3.6937 s ± 1.3130 s
-  Min:    2.3559 s
-  Max:    5.3240 s
+  Mean:   76.7739 ms ± 1.6901 ms
+  Min:    75.0681 ms
+  Max:    79.5018 ms
 
-Throughput: 0.11 MB/s
+Throughput: 5.30 MB/s
 ======================================================================
 
 [36/55] Running: plrabn12.txt (block size: 512 B)
@@ -1041,21 +938,21 @@ Compression Ratio: 1.0020
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   99.3897 ms ± 6.1469 ms
-  Min:    90.8843 ms
-  Max:    105.5730 ms
+  Mean:   41.3152 ms ± 730.8403 μs
+  Min:    40.5217 ms
+  Max:    42.2884 ms
 
 Inverse BWT:
-  Mean:   30.8240 ms ± 12.5160 ms
-  Min:    19.8243 ms
-  Max:    50.4938 ms
+  Mean:   19.9696 ms ± 471.5464 μs
+  Min:    19.4567 ms
+  Max:    20.5414 ms
 
 Total Roundtrip:
-  Mean:   130.2137 ms ± 6.9863 ms
-  Min:    123.5402 ms
-  Max:    141.3781 ms
+  Mean:   61.2849 ms ± 773.7563 μs
+  Min:    59.9784 ms
+  Max:    61.8259 ms
 
-Throughput: 3.53 MB/s
+Throughput: 7.50 MB/s
 ======================================================================
 
 [37/55] Running: plrabn12.txt (block size: 1.00 KB)
@@ -1070,21 +967,21 @@ Compression Ratio: 1.0010
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   157.1601 ms ± 63.9312 ms
-  Min:    110.5428 ms
-  Max:    245.4489 ms
+  Mean:   59.4869 ms ± 28.9831 ms
+  Min:    43.4582 ms
+  Max:    110.5630 ms
 
 Inverse BWT:
-  Mean:   17.3232 ms ± 546.1750 μs
-  Min:    16.8520 ms
-  Max:    18.1286 ms
+  Mean:   20.6275 ms ± 5.7122 ms
+  Min:    16.9698 ms
+  Max:    30.5796 ms
 
 Total Roundtrip:
-  Mean:   174.4833 ms ± 63.9296 ms
-  Min:    128.2253 ms
-  Max:    262.5603 ms
+  Mean:   80.1145 ms ± 34.6750 ms
+  Min:    60.4933 ms
+  Max:    141.1426 ms
 
-Throughput: 2.63 MB/s
+Throughput: 5.74 MB/s
 ======================================================================
 
 [38/55] Running: plrabn12.txt (block size: 4.00 KB)
@@ -1099,21 +996,21 @@ Compression Ratio: 1.0002
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   248.2437 ms ± 65.6324 ms
-  Min:    212.4250 ms
-  Max:    365.1576 ms
+  Mean:   50.4665 ms ± 3.3855 ms
+  Min:    48.6244 ms
+  Max:    56.5076 ms
 
 Inverse BWT:
-  Mean:   13.4791 ms ± 349.1795 μs
-  Min:    13.0953 ms
-  Max:    14.0250 ms
+  Mean:   13.5201 ms ± 349.7416 μs
+  Min:    13.1875 ms
+  Max:    14.0704 ms
 
 Total Roundtrip:
-  Mean:   261.7228 ms ± 65.9382 ms
-  Min:    225.8221 ms
-  Max:    379.1826 ms
+  Mean:   63.9866 ms ± 3.4628 ms
+  Min:    61.9941 ms
+  Max:    70.1535 ms
 
-Throughput: 1.76 MB/s
+Throughput: 7.18 MB/s
 ======================================================================
 
 [39/55] Running: plrabn12.txt (block size: 16.00 KB)
@@ -1128,21 +1025,21 @@ Compression Ratio: 1.0001
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   539.2348 ms ± 27.6885 ms
-  Min:    521.8364 ms
-  Max:    588.0170 ms
+  Mean:   56.0980 ms ± 389.5244 μs
+  Min:    55.5310 ms
+  Max:    56.5541 ms
 
 Inverse BWT:
-  Mean:   11.4215 ms ± 267.2338 μs
-  Min:    11.0203 ms
-  Max:    11.6321 ms
+  Mean:   12.1767 ms ± 367.1050 μs
+  Min:    11.7906 ms
+  Max:    12.5522 ms
 
 Total Roundtrip:
-  Mean:   550.6563 ms ± 27.7920 ms
-  Min:    533.4251 ms
-  Max:    599.6492 ms
+  Mean:   68.2747 ms ± 404.0344 μs
+  Min:    67.8471 ms
+  Max:    68.9054 ms
 
-Throughput: 0.83 MB/s
+Throughput: 6.73 MB/s
 ======================================================================
 
 [40/55] Running: plrabn12.txt (block size: 64.00 KB)
@@ -1157,21 +1054,21 @@ Compression Ratio: 1.0000
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   5.6181 s ± 1.3739 s
-  Min:    3.8322 s
-  Max:    7.3183 s
+  Mean:   65.7601 ms ± 817.3704 μs
+  Min:    64.8472 ms
+  Max:    66.9625 ms
 
 Inverse BWT:
-  Mean:   12.2629 ms ± 4.5637 ms
-  Min:    9.7574 ms
-  Max:    20.4050 ms
+  Mean:   11.8625 ms ± 323.7732 μs
+  Min:    11.4827 ms
+  Max:    12.1428 ms
 
 Total Roundtrip:
-  Mean:   5.6304 s ± 1.3753 s
-  Min:    3.8428 s
-  Max:    7.3284 s
+  Mean:   77.6227 ms ± 884.9303 μs
+  Min:    76.8496 ms
+  Max:    79.0467 ms
 
-Throughput: 0.08 MB/s
+Throughput: 5.92 MB/s
 ======================================================================
 
 [41/55] Running: ptt5 (block size: 512 B)
@@ -1186,21 +1083,21 @@ Compression Ratio: 1.0020
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   110.1298 ms ± 29.4040 ms
-  Min:    93.1110 ms
-  Max:    162.5462 ms
+  Mean:   97.3873 ms ± 3.4946 ms
+  Min:    94.0700 ms
+  Max:    103.1639 ms
 
 Inverse BWT:
-  Mean:   11.0483 ms ± 307.1447 μs
-  Min:    10.6758 ms
-  Max:    11.3259 ms
+  Mean:   11.9368 ms ± 1.3937 ms
+  Min:    10.8686 ms
+  Max:    14.2965 ms
 
 Total Roundtrip:
-  Mean:   121.1781 ms ± 29.2625 ms
-  Min:    103.7868 ms
-  Max:    173.3054 ms
+  Mean:   109.3242 ms ± 3.9090 ms
+  Min:    105.0343 ms
+  Max:    115.1195 ms
 
-Throughput: 4.04 MB/s
+Throughput: 4.48 MB/s
 ======================================================================
 
 [42/55] Running: ptt5 (block size: 1.00 KB)
@@ -1215,21 +1112,21 @@ Compression Ratio: 1.0010
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   123.6287 ms ± 11.6379 ms
-  Min:    117.6148 ms
-  Max:    144.3594 ms
+  Mean:   108.0353 ms ± 11.3582 ms
+  Min:    101.4034 ms
+  Max:    128.2278 ms
 
 Inverse BWT:
-  Mean:   10.8651 ms ± 2.2387 ms
-  Min:    9.5816 ms
-  Max:    14.8408 ms
+  Mean:   10.0580 ms ± 240.2155 μs
+  Min:    9.7665 ms
+  Max:    10.2996 ms
 
 Total Roundtrip:
-  Mean:   134.4938 ms ± 11.0764 ms
-  Min:    127.6211 ms
-  Max:    153.9410 ms
+  Mean:   118.0933 ms ± 11.1817 ms
+  Min:    111.5976 ms
+  Max:    137.9943 ms
 
-Throughput: 3.64 MB/s
+Throughput: 4.14 MB/s
 ======================================================================
 
 [43/55] Running: ptt5 (block size: 4.00 KB)
@@ -1244,21 +1141,21 @@ Compression Ratio: 1.0002
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   283.4177 ms ± 29.8057 ms
-  Min:    251.0671 ms
-  Max:    325.2293 ms
+  Mean:   124.4563 ms ± 1.2311 ms
+  Min:    123.4092 ms
+  Max:    126.1868 ms
 
 Inverse BWT:
-  Mean:   9.2820 ms ± 410.7144 μs
-  Min:    8.8535 ms
-  Max:    9.9001 ms
+  Mean:   9.2101 ms ± 267.2628 μs
+  Min:    8.8591 ms
+  Max:    9.5787 ms
 
 Total Roundtrip:
-  Mean:   292.6997 ms ± 29.7119 ms
-  Min:    260.3682 ms
-  Max:    334.0827 ms
+  Mean:   133.6665 ms ± 1.4277 ms
+  Min:    132.2683 ms
+  Max:    135.4765 ms
 
-Throughput: 1.67 MB/s
+Throughput: 3.66 MB/s
 ======================================================================
 
 [44/55] Running: ptt5 (block size: 16.00 KB)
@@ -1273,21 +1170,21 @@ Compression Ratio: 1.0001
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   915.2447 ms ± 115.8188 ms
-  Min:    848.0960 ms
-  Max:    1.1191 s
+  Mean:   199.0974 ms ± 76.7151 ms
+  Min:    163.6550 ms
+  Max:    336.3161 ms
 
 Inverse BWT:
-  Mean:   9.7929 ms ± 1.4144 ms
-  Min:    8.8880 ms
-  Max:    12.2856 ms
+  Mean:   9.5185 ms ± 1.9136 ms
+  Min:    8.4772 ms
+  Max:    12.9340 ms
 
 Total Roundtrip:
-  Mean:   925.0376 ms ± 115.4752 ms
-  Min:    860.3815 ms
-  Max:    1.1284 s
+  Mean:   208.6159 ms ± 78.6226 ms
+  Min:    172.4155 ms
+  Max:    349.2501 ms
 
-Throughput: 0.53 MB/s
+Throughput: 2.35 MB/s
 ======================================================================
 
 [45/55] Running: ptt5 (block size: 64.00 KB)
@@ -1302,21 +1199,21 @@ Compression Ratio: 1.0000
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   4.3260 s ± 649.6067 ms
-  Min:    3.6867 s
-  Max:    5.3611 s
+  Mean:   241.9909 ms ± 4.3244 ms
+  Min:    238.7399 ms
+  Max:    249.5836 ms
 
 Inverse BWT:
-  Mean:   8.8582 ms ± 502.5531 μs
-  Min:    8.5602 ms
-  Max:    9.7526 ms
+  Mean:   9.5080 ms ± 1.2216 ms
+  Min:    8.7147 ms
+  Max:    11.6666 ms
 
 Total Roundtrip:
-  Mean:   4.3349 s ± 649.4658 ms
-  Min:    3.6952 s
-  Max:    5.3697 s
+  Mean:   251.4989 ms ± 4.1376 ms
+  Min:    247.8842 ms
+  Max:    258.4388 ms
 
-Throughput: 0.11 MB/s
+Throughput: 1.95 MB/s
 ======================================================================
 
 [46/55] Running: sum (block size: 512 B)
@@ -1331,21 +1228,21 @@ Compression Ratio: 1.0020
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   7.6773 ms ± 378.8835 μs
-  Min:    7.2699 ms
-  Max:    8.2871 ms
+  Mean:   3.8901 ms ± 347.4005 μs
+  Min:    3.6542 ms
+  Max:    4.5048 ms
 
 Inverse BWT:
-  Mean:   1.7319 ms ± 134.8360 μs
-  Min:    1.5693 ms
-  Max:    1.9407 ms
+  Mean:   1.7592 ms ± 66.9342 μs
+  Min:    1.7059 ms
+  Max:    1.8752 ms
 
 Total Roundtrip:
-  Mean:   9.4092 ms ± 507.0497 μs
-  Min:    8.8393 ms
-  Max:    10.2278 ms
+  Mean:   5.6493 ms ± 350.3159 μs
+  Min:    5.3788 ms
+  Max:    6.2539 ms
 
-Throughput: 3.88 MB/s
+Throughput: 6.46 MB/s
 ======================================================================
 
 [47/55] Running: sum (block size: 1.00 KB)
@@ -1360,21 +1257,21 @@ Compression Ratio: 1.0010
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   8.8843 ms ± 168.2722 μs
-  Min:    8.6661 ms
-  Max:    9.0777 ms
+  Mean:   4.1517 ms ± 123.5425 μs
+  Min:    4.0075 ms
+  Max:    4.3023 ms
 
 Inverse BWT:
-  Mean:   1.4285 ms ± 236.2412 μs
-  Min:    1.3110 ms
-  Max:    1.8500 ms
+  Mean:   1.5448 ms ± 56.1389 μs
+  Min:    1.4804 ms
+  Max:    1.6042 ms
 
 Total Roundtrip:
-  Mean:   10.3128 ms ± 372.2687 μs
-  Min:    9.9825 ms
-  Max:    10.9278 ms
+  Mean:   5.6965 ms ± 135.7323 μs
+  Min:    5.5375 ms
+  Max:    5.8517 ms
 
-Throughput: 3.54 MB/s
+Throughput: 6.40 MB/s
 ======================================================================
 
 [48/55] Running: sum (block size: 4.00 KB)
@@ -1389,21 +1286,21 @@ Compression Ratio: 1.0003
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   18.0202 ms ± 3.3613 ms
-  Min:    16.4571 ms
-  Max:    24.0325 ms
+  Mean:   5.0405 ms ± 104.3697 μs
+  Min:    4.9092 ms
+  Max:    5.1929 ms
 
 Inverse BWT:
-  Mean:   1.0224 ms ± 27.6740 μs
-  Min:    984.8330 μs
-  Max:    1.0483 ms
+  Mean:   1.2800 ms ± 54.1232 μs
+  Min:    1.2301 ms
+  Max:    1.3701 ms
 
 Total Roundtrip:
-  Mean:   19.0426 ms ± 3.3762 ms
-  Min:    17.4419 ms
-  Max:    25.0808 ms
+  Mean:   6.3205 ms ± 138.6470 μs
+  Min:    6.1393 ms
+  Max:    6.4767 ms
 
-Throughput: 1.92 MB/s
+Throughput: 5.77 MB/s
 ======================================================================
 
 [49/55] Running: sum (block size: 16.00 KB)
@@ -1418,21 +1315,21 @@ Compression Ratio: 1.0001
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   61.1304 ms ± 43.7961 ms
-  Min:    40.4319 ms
-  Max:    139.4601 ms
+  Mean:   6.2549 ms ± 118.5236 μs
+  Min:    6.1488 ms
+  Max:    6.4425 ms
 
 Inverse BWT:
-  Mean:   876.0084 μs ± 208.8695 μs
-  Min:    754.1660 μs
-  Max:    1.2484 ms
+  Mean:   1.0535 ms ± 85.7551 μs
+  Min:    990.8750 μs
+  Max:    1.2031 ms
 
 Total Roundtrip:
-  Mean:   62.0064 ms ± 44.0045 ms
-  Min:    41.1860 ms
-  Max:    140.7085 ms
+  Mean:   7.3084 ms ± 162.1344 μs
+  Min:    7.1397 ms
+  Max:    7.4862 ms
 
-Throughput: 0.59 MB/s
+Throughput: 4.99 MB/s
 ======================================================================
 
 [50/55] Running: sum (block size: 64.00 KB)
@@ -1441,27 +1338,27 @@ Throughput: 0.59 MB/s
 Test: sum
 Block Size: 64.00 KB
 Input Size: 37.34 KB
-Output Size: 37.34 KB
-Compression Ratio: 1.0000
+Output Size: 37.35 KB
+Compression Ratio: 1.0001
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   141.7840 ms ± 3.1571 ms
-  Min:    139.5750 ms
-  Max:    146.7892 ms
+  Mean:   7.0420 ms ± 116.5559 μs
+  Min:    6.8676 ms
+  Max:    7.1599 ms
 
 Inverse BWT:
-  Mean:   652.3996 μs ± 220.6990 μs
-  Min:    477.4160 μs
-  Max:    957.3330 μs
+  Mean:   980.9418 μs ± 37.5792 μs
+  Min:    950.1250 μs
+  Max:    1.0432 ms
 
 Total Roundtrip:
-  Mean:   142.4364 ms ± 3.1250 ms
-  Min:    140.2173 ms
-  Max:    147.3000 ms
+  Mean:   8.0229 ms ± 144.7587 μs
+  Min:    7.8227 ms
+  Max:    8.1734 ms
 
-Throughput: 0.26 MB/s
+Throughput: 4.55 MB/s
 ======================================================================
 
 [51/55] Running: xargs.1 (block size: 512 B)
@@ -1471,26 +1368,26 @@ Test: xargs.1
 Block Size: 512 B
 Input Size: 4.13 KB
 Output Size: 4.14 KB
-Compression Ratio: 1.0021
+Compression Ratio: 1.0024
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   1.1086 ms ± 426.4304 μs
-  Min:    898.0840 μs
-  Max:    1.8707 ms
+  Mean:   624.6832 μs ± 188.3397 μs
+  Min:    524.7920 μs
+  Max:    960.8750 μs
 
 Inverse BWT:
-  Mean:   281.5082 μs ± 13.8841 μs
-  Min:    269.3330 μs
-  Max:    305.2080 μs
+  Mean:   347.6082 μs ± 23.3303 μs
+  Min:    331.2920 μs
+  Max:    388.2080 μs
 
 Total Roundtrip:
-  Mean:   1.3902 ms ± 439.7499 μs
-  Min:    1.1725 ms
-  Max:    2.1759 ms
+  Mean:   972.2914 μs ± 210.7499 μs
+  Min:    869.4170 μs
+  Max:    1.3491 ms
 
-Throughput: 2.90 MB/s
+Throughput: 4.15 MB/s
 ======================================================================
 
 [52/55] Running: xargs.1 (block size: 1.00 KB)
@@ -1500,26 +1397,26 @@ Test: xargs.1
 Block Size: 1.00 KB
 Input Size: 4.13 KB
 Output Size: 4.13 KB
-Compression Ratio: 1.0012
+Compression Ratio: 1.0014
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   1.3334 ms ± 379.4325 μs
-  Min:    1.1169 ms
-  Max:    2.0069 ms
+  Mean:   638.7832 μs ± 83.6697 μs
+  Min:    564.0840 μs
+  Max:    780.7080 μs
 
 Inverse BWT:
-  Mean:   360.7748 μs ± 169.5683 μs
-  Min:    257.7080 μs
-  Max:    661.2080 μs
+  Mean:   302.9252 μs ± 5.8581 μs
+  Min:    294.0000 μs
+  Max:    308.0000 μs
 
 Total Roundtrip:
-  Mean:   1.6942 ms ± 385.0519 μs
-  Min:    1.3746 ms
-  Max:    2.3267 ms
+  Mean:   941.7084 μs ± 78.7903 μs
+  Min:    871.5010 μs
+  Max:    1.0747 ms
 
-Throughput: 2.38 MB/s
+Throughput: 4.28 MB/s
 ======================================================================
 
 [53/55] Running: xargs.1 (block size: 4.00 KB)
@@ -1529,26 +1426,26 @@ Test: xargs.1
 Block Size: 4.00 KB
 Input Size: 4.13 KB
 Output Size: 4.13 KB
-Compression Ratio: 1.0005
+Compression Ratio: 1.0007
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   2.1761 ms ± 179.0540 μs
-  Min:    1.9892 ms
-  Max:    2.3959 ms
+  Mean:   735.3750 μs ± 88.7251 μs
+  Min:    650.8340 μs
+  Max:    875.5420 μs
 
 Inverse BWT:
-  Mean:   277.1168 μs ± 18.6126 μs
-  Min:    261.7500 μs
-  Max:    309.3750 μs
+  Mean:   295.9832 μs ± 31.8054 μs
+  Min:    262.0000 μs
+  Max:    345.1660 μs
 
 Total Roundtrip:
-  Mean:   2.4532 ms ± 179.6859 μs
-  Min:    2.2619 ms
-  Max:    2.6691 ms
+  Mean:   1.0314 ms ± 120.2137 μs
+  Min:    912.8340 μs
+  Max:    1.2207 ms
 
-Throughput: 1.64 MB/s
+Throughput: 3.91 MB/s
 ======================================================================
 
 [54/55] Running: xargs.1 (block size: 16.00 KB)
@@ -1558,26 +1455,26 @@ Test: xargs.1
 Block Size: 16.00 KB
 Input Size: 4.13 KB
 Output Size: 4.13 KB
-Compression Ratio: 1.0002
+Compression Ratio: 1.0005
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   2.2009 ms ± 130.1931 μs
-  Min:    2.0751 ms
-  Max:    2.3562 ms
+  Mean:   660.2250 μs ± 44.1436 μs
+  Min:    628.8750 μs
+  Max:    736.0000 μs
 
 Inverse BWT:
-  Mean:   243.6332 μs ± 16.0680 μs
-  Min:    219.9580 μs
-  Max:    261.6250 μs
+  Mean:   263.8752 μs ± 20.6478 μs
+  Min:    239.9170 μs
+  Max:    294.7500 μs
 
 Total Roundtrip:
-  Mean:   2.4446 ms ± 144.5706 μs
-  Min:    2.2951 ms
-  Max:    2.6179 ms
+  Mean:   924.1002 μs ± 62.4649 μs
+  Min:    871.0420 μs
+  Max:    1.0308 ms
 
-Throughput: 1.65 MB/s
+Throughput: 4.36 MB/s
 ======================================================================
 
 [55/55] Running: xargs.1 (block size: 64.00 KB)
@@ -1587,29 +1484,41 @@ Test: xargs.1
 Block Size: 64.00 KB
 Input Size: 4.13 KB
 Output Size: 4.13 KB
-Compression Ratio: 1.0002
+Compression Ratio: 1.0005
 ----------------------------------------------------------------------
 Trials: 5
 ----------------------------------------------------------------------
 Forward BWT:
-  Mean:   2.1839 ms ± 63.8841 μs
-  Min:    2.1220 ms
-  Max:    2.2698 ms
+  Mean:   643.3750 μs ± 15.9887 μs
+  Min:    623.1250 μs
+  Max:    663.5830 μs
 
 Inverse BWT:
-  Mean:   277.9836 μs ± 80.5019 μs
-  Min:    227.6660 μs
-  Max:    421.1670 μs
+  Mean:   253.8746 μs ± 4.0876 μs
+  Min:    248.0000 μs
+  Max:    258.6660 μs
 
 Total Roundtrip:
-  Mean:   2.4619 ms ± 122.4333 μs
-  Min:    2.3497 ms
-  Max:    2.6512 ms
+  Mean:   897.2496 μs ± 13.9009 μs
+  Min:    878.1660 μs
+  Max:    915.4160 μs
 
-Throughput: 1.64 MB/s
+Throughput: 4.49 MB/s
 ======================================================================
 
 ======================================================================
 Performance Benchmark Complete!
 Total tests completed: 55
+
+======================================================================
+Aggregate Statistics by Block Size (Entire Dataset)
+======================================================================
+Block Size  Total Size     Total Time     Throughput        Comp. Ratio 
+------------------------------------------------------------------------
+512 B       1.70 MB        278.5571 ms    6.10 MB/s         1.0020      
+1.00 KB     1.70 MB        302.0287 ms    5.62 MB/s         1.0010      
+4.00 KB     1.70 MB        308.4411 ms    5.51 MB/s         1.0003      
+16.00 KB    1.70 MB        399.7669 ms    4.25 MB/s         1.0001      
+64.00 KB    1.70 MB        469.8221 ms    3.62 MB/s         1.0000      
+======================================================================
 ======================================================================

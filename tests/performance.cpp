@@ -133,6 +133,13 @@ void print_performance_results(const std::string& test_name,
     std::cout << "\n" << std::string(70, '=') << std::endl;
     std::cout << "Test: " << test_name << std::endl;
     std::cout << "Block Size: " << format_size(block_size) << std::endl;
+
+    if (metrics.total_times.empty()) {
+        std::cout << "Status: FAILED - No successful trials recorded." << std::endl;
+        std::cout << std::string(70, '=') << std::endl;
+        return;
+    }
+
     std::cout << "Input Size: " << format_size(metrics.input_size) << std::endl;
     std::cout << "Output Size: " << format_size(metrics.output_size) << std::endl;
     
@@ -222,6 +229,7 @@ void print_aggregate_statistics(const std::map<size_t, std::vector<PerformanceMe
         double total_time = 0.0;
 
         for (const auto& m : metrics_list) {
+            if (m.total_times.empty()) continue;
             total_input_size += m.input_size;
             total_output_size += m.output_size;
             total_time += m.total_mean;
