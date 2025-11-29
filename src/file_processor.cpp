@@ -24,20 +24,19 @@ FileProcessor::~FileProcessor() {
 }
 
 bool FileProcessor::is_open() const {
+    std::lock_guard<std::mutex> lock(mutex_);
     // If input is open, and (either output is not needed (closed but no error?) or output is open)
-    // But we don't store if output was needed.
-    // Let's assume if input is open, it's good enough if we didn't request output.
-    // But how do we know if we requested output?
-    // We can check if output_file is open.
     // If we requested output and it failed, input_file would be closed in constructor.
     return input_file.is_open();
 }
 
 bool FileProcessor::has_more_data() const {
+    std::lock_guard<std::mutex> lock(mutex_);
     return input_file.good();
 }
 
 std::string FileProcessor::read_chunk() {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!input_file.good()) {
         return "";
     }
@@ -54,6 +53,7 @@ std::string FileProcessor::read_chunk() {
 }
 
 bool FileProcessor::read_char(char& c) {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!input_file.good()) {
         return false;
     }
@@ -62,12 +62,14 @@ bool FileProcessor::read_char(char& c) {
 }
 
 void FileProcessor::write_chunk(const std::string& chunk) {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (output_file.is_open() && !chunk.empty()) {
         output_file.write(chunk.c_str(), chunk.length());
     }
 }
 
 void FileProcessor::close() {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (input_file.is_open()) {
         input_file.close();
     }
@@ -79,4 +81,3 @@ void FileProcessor::close() {
 size_t FileProcessor::get_block_size() const {
     return block_size;
 }
-

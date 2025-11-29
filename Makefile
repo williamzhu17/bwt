@@ -23,7 +23,8 @@ TEST_EXECS := $(BUILD_DIR)/test_small $(BUILD_DIR)/test_medium
 PERF_EXECS := $(BUILD_DIR)/performance
 
 # Source Files
-UTIL_SRCS := $(wildcard $(UTIL_DIR)/*.cpp)
+# Note: Exclude template implementation files that are included from headers
+UTIL_SRCS := $(filter-out $(UTIL_DIR)/blocking_queue.cpp $(UTIL_DIR)/reorder_buffer.cpp, $(wildcard $(UTIL_DIR)/*.cpp))
 
 # --- Object Definitions ---
 

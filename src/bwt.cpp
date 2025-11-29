@@ -8,6 +8,11 @@
 #include <sstream>
 #include <cstring>
 #include <unordered_set>
+#include <thread>
+#include <atomic>
+
+#include "../util/blocking_queue.hpp"
+#include "../util/reorder_buffer.hpp"
 
 // Find a byte value (0-255) that does not appear in the file.
 // Returns the first unused byte value, or -1 if all 256 values are used.
@@ -117,7 +122,12 @@ std::string bwt_forward(const std::string& input, char delimiter) {
     return bwt_str;
 }
 
-// Process file with forward BWT transform
+struct Chunk {
+    size_t index;
+    std::string data;
+};
+
+// Process file with forward BWT transform (multi-threaded over chunks)
 int bwt_forward_process_file(const char* input_file, const char* output_file, size_t block_size) {
     // Find unique delimiter
     int delimiter_byte = find_unique_char(input_file);
@@ -135,25 +145,87 @@ int bwt_forward_process_file(const char* input_file, const char* output_file, si
     if (!processor.is_open()) {
         return 1;
     }
-    
-    // Write delimiter byte as first byte of output file
-    std::string delimiter_str(1, delimiter);
-    processor.write_chunk(delimiter_str);
-    
-    // Process file in chunks
+
+    // Decide number of worker threads
+    unsigned int num_workers = std::thread::hardware_concurrency();
+    if (num_workers == 0) {
+        num_workers = 4; // reasonable default
+    }
+
+    // Bounded queue of input chunks for workers
+    BlockingQueue<Chunk> work_queue;
+
+    // Reorder buffer to deliver transformed chunks in-order to writer
+    const size_t reorder_capacity = num_workers * 4; // number of chunks allowed in flight
+    ReorderBuffer<Chunk> reorder_buffer(reorder_capacity);
+
+    std::atomic<size_t> next_chunk_index{0};
+
+    // Writer thread: writes delimiter then BWT-transformed chunks in order
+    std::thread writer_thread([&processor, &reorder_buffer, delimiter]() {
+        // Write delimiter byte as first byte of output file
+        std::string delimiter_str(1, delimiter);
+        processor.write_chunk(delimiter_str);
+
+        Chunk out_chunk;
+        while (reorder_buffer.get_next(out_chunk)) {
+            processor.write_chunk(out_chunk.data);
+        }
+    });
+
+    // Worker threads: consume raw chunks, apply BWT, push into reorder buffer
+    std::vector<std::thread> workers;
+    workers.reserve(num_workers);
+
+    for (unsigned int i = 0; i < num_workers; ++i) {
+        workers.emplace_back([&work_queue, &reorder_buffer, delimiter]() {
+            Chunk in_chunk;
+            while (work_queue.pop(in_chunk)) {
+                // Apply BWT to this chunk
+                std::string result = bwt_forward(in_chunk.data, delimiter);
+
+                Chunk out_chunk;
+                out_chunk.index = in_chunk.index;
+                out_chunk.data = std::move(result);
+
+                // Place result into reorder buffer
+                reorder_buffer.put(out_chunk.index, out_chunk);
+            }
+        });
+    }
+
+    // Main thread: read chunks from input and enqueue work
     while (processor.has_more_data()) {
-        // Read a chunk
-        std::string chunk = processor.read_chunk();
-        
-        if (chunk.empty()) {
+        std::string chunk_data = processor.read_chunk();
+
+        if (chunk_data.empty()) {
             break;
         }
-        
-        // Apply BWT and write result
-        std::string result = bwt_forward(chunk, delimiter);
-        processor.write_chunk(result);
+
+        Chunk chunk;
+        chunk.index = next_chunk_index++;
+        chunk.data = std::move(chunk_data);
+
+        work_queue.push(chunk);
     }
-    
+
+    // No more work; let workers drain and exit
+    work_queue.close();
+
+    // Wait for all workers to finish and flush their results into the reorder buffer
+    for (auto& t : workers) {
+        if (t.joinable()) {
+            t.join();
+        }
+    }
+
+    // All results have been produced; close the reorder buffer so writer can finish
+    reorder_buffer.close();
+
+    if (writer_thread.joinable()) {
+        writer_thread.join();
+    }
+
     processor.close();
     return 0;
 }
