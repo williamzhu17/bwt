@@ -54,6 +54,11 @@ std::vector<size_t> build_suffix_array(const std::string& input) {
     std::vector<size_t> rank(n);
     std::vector<size_t> temp(n);
 
+    // Temporary arrays for radix/counting sort
+    std::vector<size_t> sa_tmp(n);
+    // +2 to safely hold sentinel and max rank + 1
+    std::vector<size_t> count(n + 2);
+
     // Initialize ranks based on first character
     for (size_t i = 0; i < n; i++) {
         suffix_array[i] = i;
@@ -62,29 +67,75 @@ std::vector<size_t> build_suffix_array(const std::string& input) {
 
     // Sort suffixes by first k characters, then 2k, etc.
     for (size_t k = 1; k < n; k *= 2) {
-        // Compare based on current rank pairs
-        auto cmp = [&](size_t a, size_t b) {
-            if (rank[a] != rank[b]) return rank[a] < rank[b];
-            
-            // Compare next block (k steps ahead)
-            bool a_has_next = (a + k < n);
-            bool b_has_next = (b + k < n);
-            
-            if (a_has_next && b_has_next) {
-                return rank[a + k] < rank[b + k];
+        // Current maximum rank value over all positions (ranks are in [0, max_rank])
+        size_t max_rank = 0;
+        for (size_t i = 0; i < n; ++i) {
+            if (rank[i] > max_rank) {
+                max_rank = rank[i];
             }
-            
-            // If one doesn't exist (past end), it is considered smaller
-            // If a is past end, a < b. If b is past end, b < a (so a > b)
-            return !a_has_next && b_has_next;
+        }
+
+        // --- First pass: sort by second key rank[i + k] (with sentinel) ---
+        // key2(i) = 0 if i + k >= n (sentinel, smallest); otherwise rank[i + k] + 1
+        auto key2 = [&](size_t idx) -> size_t {
+            return (idx + k < n) ? (rank[idx + k] + 1) : 0;
         };
 
-        std::sort(suffix_array.begin(), suffix_array.end(), cmp);
+        size_t key_range = max_rank + 2; // ranks [0..max_rank] -> [1..max_rank+1], plus sentinel 0
+        if (key_range > count.size()) {
+            count.resize(key_range);
+        }
+
+        // Count occurrences for second key
+        std::fill(count.begin(), count.begin() + key_range, 0);
+        for (size_t i = 0; i < n; ++i) {
+            ++count[key2(suffix_array[i])];
+        }
+        // Prefix sums
+        for (size_t i = 1; i < key_range; ++i) {
+            count[i] += count[i - 1];
+        }
+        // Stable placement by second key (iterate backwards)
+        for (size_t i = n; i-- > 0;) {
+            size_t idx = suffix_array[i];
+            size_t k2 = key2(idx);
+            sa_tmp[--count[k2]] = idx;
+        }
+
+        // --- Second pass: stable sort by first key rank[i] ---
+        key_range = max_rank + 1; // ranks [0..max_rank] -> [0..max_rank]
+        if (key_range + 1 > count.size()) {
+            count.resize(key_range + 1);
+        }
+
+        std::fill(count.begin(), count.begin() + key_range, 0);
+        for (size_t i = 0; i < n; ++i) {
+            ++count[rank[sa_tmp[i]]];
+        }
+        for (size_t i = 1; i < key_range; ++i) {
+            count[i] += count[i - 1];
+        }
+        for (size_t i = n; i-- > 0;) {
+            size_t idx = sa_tmp[i];
+            size_t k1 = rank[idx];
+            suffix_array[--count[k1]] = idx;
+        }
 
         // Recompute ranks based on sorted order
         temp[suffix_array[0]] = 0;
         for (size_t i = 1; i < n; i++) {
-            temp[suffix_array[i]] = temp[suffix_array[i - 1]] + (cmp(suffix_array[i - 1], suffix_array[i]) ? 1 : 0);
+            size_t prev = suffix_array[i - 1];
+            size_t curr = suffix_array[i];
+
+            // Check if (rank[curr], rank[curr + k]) differs from (rank[prev], rank[prev + k])
+            bool diff = (rank[prev] != rank[curr]);
+            if (!diff) {
+                size_t prev_second = (prev + k < n) ? rank[prev + k] : static_cast<size_t>(-1);
+                size_t curr_second = (curr + k < n) ? rank[curr + k] : static_cast<size_t>(-1);
+                diff = (prev_second != curr_second);
+            }
+
+            temp[curr] = temp[prev] + (diff ? 1 : 0);
         }
 
         rank = temp;
