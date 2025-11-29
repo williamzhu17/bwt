@@ -127,6 +127,34 @@ struct Chunk {
     std::string data;
 };
 
+// Writer thread function: writes delimiter then BWT-transformed chunks in order
+static void writer_thread_function(FileProcessor& processor, ReorderBuffer<Chunk>& reorder_buffer, char delimiter) {
+    // Write delimiter byte as first byte of output file
+    std::string delimiter_str(1, delimiter);
+    processor.write_chunk(delimiter_str);
+
+    Chunk out_chunk;
+    while (reorder_buffer.get_next(out_chunk)) {
+        processor.write_chunk(out_chunk.data);
+    }
+}
+
+// Worker thread function: consume raw chunks, apply BWT, push into reorder buffer
+static void worker_thread_function(BlockingQueue<Chunk>& work_queue, ReorderBuffer<Chunk>& reorder_buffer, char delimiter) {
+    Chunk in_chunk;
+    while (work_queue.pop(in_chunk)) {
+        // Apply BWT to this chunk
+        std::string result = bwt_forward(in_chunk.data, delimiter);
+
+        Chunk out_chunk;
+        out_chunk.index = in_chunk.index;
+        out_chunk.data = std::move(result);
+
+        // Place result into reorder buffer
+        reorder_buffer.put(out_chunk.index, out_chunk);
+    }
+}
+
 // Process file with forward BWT transform (multi-threaded over chunks)
 int bwt_forward_process_file(const char* input_file, const char* output_file, size_t block_size) {
     // Find unique delimiter
@@ -162,36 +190,14 @@ int bwt_forward_process_file(const char* input_file, const char* output_file, si
     std::atomic<size_t> next_chunk_index{0};
 
     // Writer thread: writes delimiter then BWT-transformed chunks in order
-    std::thread writer_thread([&processor, &reorder_buffer, delimiter]() {
-        // Write delimiter byte as first byte of output file
-        std::string delimiter_str(1, delimiter);
-        processor.write_chunk(delimiter_str);
-
-        Chunk out_chunk;
-        while (reorder_buffer.get_next(out_chunk)) {
-            processor.write_chunk(out_chunk.data);
-        }
-    });
+    std::thread writer_thread(writer_thread_function, std::ref(processor), std::ref(reorder_buffer), delimiter);
 
     // Worker threads: consume raw chunks, apply BWT, push into reorder buffer
     std::vector<std::thread> workers;
     workers.reserve(num_workers);
 
     for (unsigned int i = 0; i < num_workers; ++i) {
-        workers.emplace_back([&work_queue, &reorder_buffer, delimiter]() {
-            Chunk in_chunk;
-            while (work_queue.pop(in_chunk)) {
-                // Apply BWT to this chunk
-                std::string result = bwt_forward(in_chunk.data, delimiter);
-
-                Chunk out_chunk;
-                out_chunk.index = in_chunk.index;
-                out_chunk.data = std::move(result);
-
-                // Place result into reorder buffer
-                reorder_buffer.put(out_chunk.index, out_chunk);
-            }
-        });
+        workers.emplace_back(worker_thread_function, std::ref(work_queue), std::ref(reorder_buffer), delimiter);
     }
 
     // Main thread: read chunks from input and enqueue work
