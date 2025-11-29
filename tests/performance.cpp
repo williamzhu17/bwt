@@ -302,8 +302,9 @@ int main(int argc, char* argv[]) {
         1 * 1024,   // 1 KB
         4 * 1024,   // 4 KB
         16 * 1024,  // 16 KB
-        64 * 1024  // 64 KB
-        //256 * 1024  // 256 KB // too large for my computer
+        64 * 1024,  // 64 KB
+        256 * 1024, // 256 KB
+        1024 * 1024 // 1 MB
     };
     
     // Check if data directory exists
