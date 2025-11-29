@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <mutex>
 
 class FileProcessor {
 private:
@@ -11,6 +12,7 @@ private:
     std::ofstream output_file;
     size_t block_size;
     std::vector<char> buffer;
+    mutable std::mutex mutex_;  // Protects access to input_file, output_file, and buffer
 
 public:
     // Constructor: opens input and output files with specified block size
@@ -44,4 +46,3 @@ public:
 };
 
 #endif // FILE_PROCESSOR_HPP
-

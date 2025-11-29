@@ -9,6 +9,7 @@
 #include <map>
 #include <iomanip>
 #include <sstream>
+#include <thread>
 #include "../src/file_processor.hpp"
 #include "../src/bwt.hpp"
 #include "../src/inverse_bwt.hpp"
@@ -279,8 +280,15 @@ int main(int argc, char* argv[]) {
         }
     }
     
+    // Calculate number of worker threads (same logic as bwt_forward_process_file)
+    unsigned int num_workers = std::thread::hardware_concurrency();
+    if (num_workers == 0) {
+        num_workers = 4; // reasonable default
+    }
+    
     std::cout << "Dataset Directory: " << data_dir << std::endl;
     std::cout << "Number of trials per test: " << num_trials << std::endl;
+    std::cout << "Number of worker threads: " << num_workers << std::endl;
     
     // Create build/tmp directory for temporary files
     if (!create_directory("build/tmp")) {
@@ -294,8 +302,9 @@ int main(int argc, char* argv[]) {
         1 * 1024,   // 1 KB
         4 * 1024,   // 4 KB
         16 * 1024,  // 16 KB
-        64 * 1024  // 64 KB
-        //256 * 1024  // 256 KB // too large for my computer
+        64 * 1024,  // 64 KB
+        256 * 1024, // 256 KB
+        1024 * 1024 // 1 MB
     };
     
     // Check if data directory exists
