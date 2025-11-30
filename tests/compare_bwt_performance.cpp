@@ -17,6 +17,7 @@
 #include <cmath>
 #include "../src/file_processor.hpp"
 #include "../src/bwt.hpp"
+#include "../src/inverse_bwt.hpp"
 #include "../util/file_utils.hpp"
 #include "../util/format_utils.hpp"
 
@@ -24,12 +25,24 @@
 const int DEFAULT_NUM_TRIALS = 5;
 
 struct TrialResult {
-    double your_time = 0.0;
-    double bzip2_time = 0.0;
-    size_t your_output_size = 0;
-    size_t bzip2_output_size = 0;
-    double speedup = 0.0;
-    double time_diff = 0.0;
+    // Forward BWT
+    double your_forward_time = 0.0;
+    double bzip2_forward_time = 0.0;
+    size_t your_forward_output_size = 0;
+    size_t bzip2_forward_output_size = 0;
+    
+    // Inverse BWT
+    double your_inverse_time = 0.0;
+    double bzip2_inverse_time = 0.0;
+    
+    // Round trip (forward + inverse)
+    double your_roundtrip_time = 0.0;
+    double bzip2_roundtrip_time = 0.0;
+    
+    // Comparison metrics
+    double forward_speedup = 0.0;
+    double inverse_speedup = 0.0;
+    double roundtrip_speedup = 0.0;
 };
 
 struct ComparisonResult {
@@ -41,56 +54,131 @@ struct ComparisonResult {
     // Trial results
     std::vector<TrialResult> trials;
     
-    // Statistics (calculated from trials)
-    double your_time_mean = 0.0;
-    double your_time_stddev = 0.0;
-    double your_time_min = 0.0;
-    double your_time_max = 0.0;
+    // Forward BWT statistics
+    double your_forward_time_mean = 0.0;
+    double your_forward_time_stddev = 0.0;
+    double your_forward_time_min = 0.0;
+    double your_forward_time_max = 0.0;
     
-    double bzip2_time_mean = 0.0;
-    double bzip2_time_stddev = 0.0;
-    double bzip2_time_min = 0.0;
-    double bzip2_time_max = 0.0;
+    double bzip2_forward_time_mean = 0.0;
+    double bzip2_forward_time_stddev = 0.0;
+    double bzip2_forward_time_min = 0.0;
+    double bzip2_forward_time_max = 0.0;
     
-    double speedup_mean = 0.0;
-    double speedup_stddev = 0.0;
+    double forward_speedup_mean = 0.0;
+    double forward_speedup_stddev = 0.0;
     
-    size_t your_output_size = 0;
-    size_t bzip2_output_size = 0;
+    // Inverse BWT statistics
+    double your_inverse_time_mean = 0.0;
+    double your_inverse_time_stddev = 0.0;
+    double your_inverse_time_min = 0.0;
+    double your_inverse_time_max = 0.0;
+    
+    double bzip2_inverse_time_mean = 0.0;
+    double bzip2_inverse_time_stddev = 0.0;
+    double bzip2_inverse_time_min = 0.0;
+    double bzip2_inverse_time_max = 0.0;
+    
+    double inverse_speedup_mean = 0.0;
+    double inverse_speedup_stddev = 0.0;
+    
+    // Round trip statistics
+    double your_roundtrip_time_mean = 0.0;
+    double your_roundtrip_time_stddev = 0.0;
+    double your_roundtrip_time_min = 0.0;
+    double your_roundtrip_time_max = 0.0;
+    
+    double bzip2_roundtrip_time_mean = 0.0;
+    double bzip2_roundtrip_time_stddev = 0.0;
+    double bzip2_roundtrip_time_min = 0.0;
+    double bzip2_roundtrip_time_max = 0.0;
+    
+    double roundtrip_speedup_mean = 0.0;
+    double roundtrip_speedup_stddev = 0.0;
+    
+    size_t your_forward_output_size = 0;
+    size_t bzip2_forward_output_size = 0;
     
     void calculate_statistics() {
         if (trials.empty()) return;
         
         // Extract time vectors
-        std::vector<double> your_times, bzip2_times, speedups;
+        std::vector<double> your_forward_times, bzip2_forward_times, forward_speedups;
+        std::vector<double> your_inverse_times, bzip2_inverse_times, inverse_speedups;
+        std::vector<double> your_roundtrip_times, bzip2_roundtrip_times, roundtrip_speedups;
+        
         for (const auto& trial : trials) {
-            your_times.push_back(trial.your_time);
-            bzip2_times.push_back(trial.bzip2_time);
-            if (trial.speedup > 0) {
-                speedups.push_back(trial.speedup);
+            your_forward_times.push_back(trial.your_forward_time);
+            bzip2_forward_times.push_back(trial.bzip2_forward_time);
+            if (trial.forward_speedup > 0) {
+                forward_speedups.push_back(trial.forward_speedup);
+            }
+            
+            your_inverse_times.push_back(trial.your_inverse_time);
+            bzip2_inverse_times.push_back(trial.bzip2_inverse_time);
+            if (trial.inverse_speedup > 0) {
+                inverse_speedups.push_back(trial.inverse_speedup);
+            }
+            
+            your_roundtrip_times.push_back(trial.your_roundtrip_time);
+            bzip2_roundtrip_times.push_back(trial.bzip2_roundtrip_time);
+            if (trial.roundtrip_speedup > 0) {
+                roundtrip_speedups.push_back(trial.roundtrip_speedup);
             }
         }
         
-        // Calculate statistics
-        your_time_mean = calculate_mean(your_times);
-        your_time_stddev = calculate_stddev(your_times, your_time_mean);
-        your_time_min = *std::min_element(your_times.begin(), your_times.end());
-        your_time_max = *std::max_element(your_times.begin(), your_times.end());
+        // Calculate forward BWT statistics
+        your_forward_time_mean = calculate_mean(your_forward_times);
+        your_forward_time_stddev = calculate_stddev(your_forward_times, your_forward_time_mean);
+        your_forward_time_min = *std::min_element(your_forward_times.begin(), your_forward_times.end());
+        your_forward_time_max = *std::max_element(your_forward_times.begin(), your_forward_times.end());
         
-        bzip2_time_mean = calculate_mean(bzip2_times);
-        bzip2_time_stddev = calculate_stddev(bzip2_times, bzip2_time_mean);
-        bzip2_time_min = *std::min_element(bzip2_times.begin(), bzip2_times.end());
-        bzip2_time_max = *std::max_element(bzip2_times.begin(), bzip2_times.end());
+        bzip2_forward_time_mean = calculate_mean(bzip2_forward_times);
+        bzip2_forward_time_stddev = calculate_stddev(bzip2_forward_times, bzip2_forward_time_mean);
+        bzip2_forward_time_min = *std::min_element(bzip2_forward_times.begin(), bzip2_forward_times.end());
+        bzip2_forward_time_max = *std::max_element(bzip2_forward_times.begin(), bzip2_forward_times.end());
         
-        if (!speedups.empty()) {
-            speedup_mean = calculate_mean(speedups);
-            speedup_stddev = calculate_stddev(speedups, speedup_mean);
+        if (!forward_speedups.empty()) {
+            forward_speedup_mean = calculate_mean(forward_speedups);
+            forward_speedup_stddev = calculate_stddev(forward_speedups, forward_speedup_mean);
+        }
+        
+        // Calculate inverse BWT statistics
+        your_inverse_time_mean = calculate_mean(your_inverse_times);
+        your_inverse_time_stddev = calculate_stddev(your_inverse_times, your_inverse_time_mean);
+        your_inverse_time_min = *std::min_element(your_inverse_times.begin(), your_inverse_times.end());
+        your_inverse_time_max = *std::max_element(your_inverse_times.begin(), your_inverse_times.end());
+        
+        bzip2_inverse_time_mean = calculate_mean(bzip2_inverse_times);
+        bzip2_inverse_time_stddev = calculate_stddev(bzip2_inverse_times, bzip2_inverse_time_mean);
+        bzip2_inverse_time_min = *std::min_element(bzip2_inverse_times.begin(), bzip2_inverse_times.end());
+        bzip2_inverse_time_max = *std::max_element(bzip2_inverse_times.begin(), bzip2_inverse_times.end());
+        
+        if (!inverse_speedups.empty()) {
+            inverse_speedup_mean = calculate_mean(inverse_speedups);
+            inverse_speedup_stddev = calculate_stddev(inverse_speedups, inverse_speedup_mean);
+        }
+        
+        // Calculate round trip statistics
+        your_roundtrip_time_mean = calculate_mean(your_roundtrip_times);
+        your_roundtrip_time_stddev = calculate_stddev(your_roundtrip_times, your_roundtrip_time_mean);
+        your_roundtrip_time_min = *std::min_element(your_roundtrip_times.begin(), your_roundtrip_times.end());
+        your_roundtrip_time_max = *std::max_element(your_roundtrip_times.begin(), your_roundtrip_times.end());
+        
+        bzip2_roundtrip_time_mean = calculate_mean(bzip2_roundtrip_times);
+        bzip2_roundtrip_time_stddev = calculate_stddev(bzip2_roundtrip_times, bzip2_roundtrip_time_mean);
+        bzip2_roundtrip_time_min = *std::min_element(bzip2_roundtrip_times.begin(), bzip2_roundtrip_times.end());
+        bzip2_roundtrip_time_max = *std::max_element(bzip2_roundtrip_times.begin(), bzip2_roundtrip_times.end());
+        
+        if (!roundtrip_speedups.empty()) {
+            roundtrip_speedup_mean = calculate_mean(roundtrip_speedups);
+            roundtrip_speedup_stddev = calculate_stddev(roundtrip_speedups, roundtrip_speedup_mean);
         }
         
         // Output sizes (should be same across trials, use first)
         if (!trials.empty()) {
-            your_output_size = trials[0].your_output_size;
-            bzip2_output_size = trials[0].bzip2_output_size;
+            your_forward_output_size = trials[0].your_forward_output_size;
+            bzip2_forward_output_size = trials[0].bzip2_forward_output_size;
         }
     }
     
@@ -111,9 +199,9 @@ private:
     }
 };
 
-// Run your BWT implementation
-bool run_your_bwt(const std::string& input_file, const std::string& output_file, 
-                  size_t block_size, double& elapsed_time, size_t& output_size) {
+// Run your forward BWT implementation
+bool run_your_forward_bwt(const std::string& input_file, const std::string& output_file, 
+                          size_t block_size, double& elapsed_time, size_t& output_size) {
     auto start = std::chrono::high_resolution_clock::now();
     
     int result = bwt_forward_process_file(input_file.c_str(), output_file.c_str(), block_size);
@@ -130,9 +218,23 @@ bool run_your_bwt(const std::string& input_file, const std::string& output_file,
     return true;
 }
 
-// Run bzip2 BWT extractor (assumes it's compiled as bzip2_bwt_extractor)
-bool run_bzip2_bwt(const std::string& input_file, const std::string& output_file,
-                   size_t block_size, double& elapsed_time, size_t& output_size) {
+// Run your inverse BWT implementation
+bool run_your_inverse_bwt(const std::string& input_file, const std::string& output_file,
+                          size_t block_size, double& elapsed_time) {
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    int result = bwt_inverse_process_file(input_file.c_str(), output_file.c_str(), block_size);
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    elapsed_time = duration.count() / 1000.0;  // Convert to milliseconds
+    
+    return (result == 0);
+}
+
+// Run bzip2 forward BWT extractor
+bool run_bzip2_forward_bwt(const std::string& input_file, const std::string& output_file,
+                           size_t block_size, double& elapsed_time, size_t& output_size) {
     std::string command = "./build/bzip2_bwt_extractor \"" + input_file + "\" \"" + 
                           output_file + "\" " + std::to_string(block_size);
     
@@ -152,7 +254,24 @@ bool run_bzip2_bwt(const std::string& input_file, const std::string& output_file
     return true;
 }
 
-// Compare implementations on a single file with multiple trials
+// Run bzip2 inverse BWT extractor
+bool run_bzip2_inverse_bwt(const std::string& input_file, const std::string& output_file,
+                            size_t block_size, double& elapsed_time) {
+    std::string command = "./build/bzip2_inverse_bwt_extractor \"" + input_file + "\" \"" + 
+                          output_file + "\" " + std::to_string(block_size);
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    int result = system(command.c_str());
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    elapsed_time = duration.count() / 1000.0;  // Convert to milliseconds
+    
+    return (result == 0);
+}
+
+// Compare implementations on a single file with multiple trials (forward, inverse, and round trip)
 ComparisonResult compare_implementations(const std::string& input_file, 
                                          const std::string& test_name,
                                          size_t block_size,
@@ -163,40 +282,71 @@ ComparisonResult compare_implementations(const std::string& input_file,
     result.file_size = get_file_size(input_file);
     result.num_trials = num_trials;
     
-    std::string your_output = "build/tmp/your_bwt_output.bwt";
-    std::string bzip2_output = "build/tmp/bzip2_bwt_output.bwt";
+    std::string your_forward_output = "build/tmp/your_forward.bwt";
+    std::string your_inverse_output = "build/tmp/your_inverse.txt";
+    std::string bzip2_forward_output = "build/tmp/bzip2_forward.bwt";
+    std::string bzip2_inverse_output = "build/tmp/bzip2_inverse.txt";
     
     // Run multiple trials
     for (int trial = 0; trial < num_trials; trial++) {
         TrialResult trial_result;
         
         // Clean up previous outputs
-        std::remove(your_output.c_str());
-        std::remove(bzip2_output.c_str());
+        std::remove(your_forward_output.c_str());
+        std::remove(your_inverse_output.c_str());
+        std::remove(bzip2_forward_output.c_str());
+        std::remove(bzip2_inverse_output.c_str());
         
-        // Run your BWT
-        bool your_success = run_your_bwt(input_file, your_output, block_size, 
-                                         trial_result.your_time, trial_result.your_output_size);
+        // === Forward BWT ===
+        bool your_forward_success = run_your_forward_bwt(input_file, your_forward_output, block_size, 
+                                                        trial_result.your_forward_time, 
+                                                        trial_result.your_forward_output_size);
         
-        // Run bzip2 BWT
-        bool bzip2_success = run_bzip2_bwt(input_file, bzip2_output, block_size,
-                                           trial_result.bzip2_time, trial_result.bzip2_output_size);
+        bool bzip2_forward_success = run_bzip2_forward_bwt(input_file, bzip2_forward_output, block_size,
+                                                            trial_result.bzip2_forward_time, 
+                                                            trial_result.bzip2_forward_output_size);
         
-        if (!your_success) {
-            std::cerr << "Warning: Your BWT failed for " << test_name << " (trial " << (trial + 1) << ")" << std::endl;
+        if (!your_forward_success) {
+            std::cerr << "Warning: Your forward BWT failed for " << test_name << " (trial " << (trial + 1) << ")" << std::endl;
             continue;
         }
         
-        if (!bzip2_success) {
-            std::cerr << "Warning: bzip2 BWT failed for " << test_name << " (trial " << (trial + 1) << ")" << std::endl;
+        if (!bzip2_forward_success) {
+            std::cerr << "Warning: bzip2 forward BWT failed for " << test_name << " (trial " << (trial + 1) << ")" << std::endl;
             continue;
         }
         
-        // Calculate comparison metrics
-        if (trial_result.your_time > 0) {
-            trial_result.speedup = trial_result.bzip2_time / trial_result.your_time;
+        // === Inverse BWT ===
+        bool your_inverse_success = run_your_inverse_bwt(your_forward_output, your_inverse_output, block_size,
+                                                         trial_result.your_inverse_time);
+        
+        bool bzip2_inverse_success = run_bzip2_inverse_bwt(bzip2_forward_output, bzip2_inverse_output, block_size,
+                                                           trial_result.bzip2_inverse_time);
+        
+        if (!your_inverse_success) {
+            std::cerr << "Warning: Your inverse BWT failed for " << test_name << " (trial " << (trial + 1) << ")" << std::endl;
+            continue;
         }
-        trial_result.time_diff = trial_result.your_time - trial_result.bzip2_time;
+        
+        if (!bzip2_inverse_success) {
+            std::cerr << "Warning: bzip2 inverse BWT failed for " << test_name << " (trial " << (trial + 1) << ")" << std::endl;
+            continue;
+        }
+        
+        // === Round trip times ===
+        trial_result.your_roundtrip_time = trial_result.your_forward_time + trial_result.your_inverse_time;
+        trial_result.bzip2_roundtrip_time = trial_result.bzip2_forward_time + trial_result.bzip2_inverse_time;
+        
+        // === Calculate comparison metrics ===
+        if (trial_result.your_forward_time > 0) {
+            trial_result.forward_speedup = trial_result.bzip2_forward_time / trial_result.your_forward_time;
+        }
+        if (trial_result.your_inverse_time > 0) {
+            trial_result.inverse_speedup = trial_result.bzip2_inverse_time / trial_result.your_inverse_time;
+        }
+        if (trial_result.your_roundtrip_time > 0) {
+            trial_result.roundtrip_speedup = trial_result.bzip2_roundtrip_time / trial_result.your_roundtrip_time;
+        }
         
         result.trials.push_back(trial_result);
     }
@@ -205,10 +355,54 @@ ComparisonResult compare_implementations(const std::string& input_file,
     result.calculate_statistics();
     
     // Clean up
-    std::remove(your_output.c_str());
-    std::remove(bzip2_output.c_str());
+    std::remove(your_forward_output.c_str());
+    std::remove(your_inverse_output.c_str());
+    std::remove(bzip2_forward_output.c_str());
+    std::remove(bzip2_inverse_output.c_str());
     
     return result;
+}
+
+// Helper function to print timing statistics
+void print_timing_stats(const std::string& label, double mean, double stddev, 
+                       double min, double max, size_t num_trials) {
+    std::cout << "  " << label << ":" << std::endl;
+    std::cout << "    Time:      " << std::fixed << std::setprecision(3) << mean << " ms";
+    if (num_trials > 1) {
+        std::cout << " ± " << std::fixed << std::setprecision(3) << stddev << " ms";
+    }
+    std::cout << std::endl;
+    std::cout << "    Min:       " << std::fixed << std::setprecision(3) << min << " ms" << std::endl;
+    std::cout << "    Max:       " << std::fixed << std::setprecision(3) << max << " ms" << std::endl;
+}
+
+// Helper function to print comparison metrics
+void print_comparison_metrics(const std::string& label, double speedup_mean, double speedup_stddev,
+                              double your_time, double bzip2_time, size_t num_trials) {
+    if (speedup_mean > 0) {
+        std::cout << "  " << label << ":" << std::endl;
+        std::cout << "    Speedup:   " << std::fixed << std::setprecision(3) << speedup_mean << "x";
+        if (num_trials > 1) {
+            std::cout << " ± " << std::fixed << std::setprecision(3) << speedup_stddev << "x";
+        }
+        if (speedup_mean < 1.0) {
+            std::cout << " (bzip2 is " << std::fixed << std::setprecision(1) 
+                      << (1.0 / speedup_mean - 1.0) * 100 << "% faster)";
+        } else {
+            std::cout << " (your BWT is " << std::fixed << std::setprecision(1) 
+                      << (speedup_mean - 1.0) * 100 << "% faster)";
+        }
+        std::cout << std::endl;
+        
+        double time_diff = your_time - bzip2_time;
+        std::cout << "    Time Diff: " << std::fixed << std::setprecision(3) << time_diff << " ms";
+        if (time_diff > 0) {
+            std::cout << " (bzip2 is faster)";
+        } else {
+            std::cout << " (your BWT is faster)";
+        }
+        std::cout << std::endl;
+    }
 }
 
 // Print comparison results with statistics
@@ -226,61 +420,51 @@ void print_comparison(const ComparisonResult& result) {
         return;
     }
     
+    // === FORWARD BWT ===
+    std::cout << "\nFORWARD BWT:" << std::endl;
     std::cout << "Your BWT:" << std::endl;
-    std::cout << "  Time:      " << std::fixed << std::setprecision(3) 
-              << result.your_time_mean << " ms";
-    if (result.trials.size() > 1) {
-        std::cout << " ± " << std::fixed << std::setprecision(3) << result.your_time_stddev << " ms";
-    }
-    std::cout << std::endl;
-    std::cout << "  Min:       " << std::fixed << std::setprecision(3) 
-              << result.your_time_min << " ms" << std::endl;
-    std::cout << "  Max:       " << std::fixed << std::setprecision(3) 
-              << result.your_time_max << " ms" << std::endl;
-    std::cout << "  Output:    " << format_size(result.your_output_size) << std::endl;
+    print_timing_stats("Forward", result.your_forward_time_mean, result.your_forward_time_stddev,
+                      result.your_forward_time_min, result.your_forward_time_max, result.trials.size());
+    std::cout << "  Output:    " << format_size(result.your_forward_output_size) << std::endl;
     
     std::cout << "\nbzip2 BWT:" << std::endl;
-    std::cout << "  Time:      " << std::fixed << std::setprecision(3) 
-              << result.bzip2_time_mean << " ms";
-    if (result.trials.size() > 1) {
-        std::cout << " ± " << std::fixed << std::setprecision(3) << result.bzip2_time_stddev << " ms";
-    }
-    std::cout << std::endl;
-    std::cout << "  Min:       " << std::fixed << std::setprecision(3) 
-              << result.bzip2_time_min << " ms" << std::endl;
-    std::cout << "  Max:       " << std::fixed << std::setprecision(3) 
-              << result.bzip2_time_max << " ms" << std::endl;
-    std::cout << "  Output:    " << format_size(result.bzip2_output_size) << std::endl;
+    print_timing_stats("Forward", result.bzip2_forward_time_mean, result.bzip2_forward_time_stddev,
+                      result.bzip2_forward_time_min, result.bzip2_forward_time_max, result.trials.size());
+    std::cout << "  Output:    " << format_size(result.bzip2_forward_output_size) << std::endl;
     
-    if (result.speedup_mean > 0) {
-        std::cout << "\nComparison:" << std::endl;
-        std::cout << "  Speedup:   " << std::fixed << std::setprecision(3) 
-                  << result.speedup_mean << "x";
-        if (result.trials.size() > 1) {
-            std::cout << " ± " << std::fixed << std::setprecision(3) << result.speedup_stddev << "x";
-        }
-        if (result.speedup_mean > 1.0) {
-            std::cout << " (bzip2 is " << std::fixed << std::setprecision(1) 
-                      << (result.speedup_mean - 1.0) * 100 << "% faster)";
-        } else {
-            std::cout << " (your BWT is " << std::fixed << std::setprecision(1) 
-                      << (1.0 / result.speedup_mean - 1.0) * 100 << "% faster)";
-        }
-        std::cout << std::endl;
-        
-        double time_diff = result.your_time_mean - result.bzip2_time_mean;
-        std::cout << "  Time Diff: " << std::fixed << std::setprecision(3) 
-                  << time_diff << " ms";
-        if (time_diff > 0) {
-            std::cout << " (bzip2 is faster)";
-        } else {
-            std::cout << " (your BWT is faster)";
-        }
-        std::cout << std::endl;
-        
-        // Throughput comparison
-        double your_throughput = (result.file_size / (1024.0 * 1024.0)) / (result.your_time_mean / 1000.0);
-        double bzip2_throughput = (result.file_size / (1024.0 * 1024.0)) / (result.bzip2_time_mean / 1000.0);
+    print_comparison_metrics("Comparison", result.forward_speedup_mean, result.forward_speedup_stddev,
+                            result.your_forward_time_mean, result.bzip2_forward_time_mean, result.trials.size());
+    
+    // === INVERSE BWT ===
+    std::cout << "\nINVERSE BWT:" << std::endl;
+    std::cout << "Your BWT:" << std::endl;
+    print_timing_stats("Inverse", result.your_inverse_time_mean, result.your_inverse_time_stddev,
+                      result.your_inverse_time_min, result.your_inverse_time_max, result.trials.size());
+    
+    std::cout << "\nbzip2 BWT:" << std::endl;
+    print_timing_stats("Inverse", result.bzip2_inverse_time_mean, result.bzip2_inverse_time_stddev,
+                      result.bzip2_inverse_time_min, result.bzip2_inverse_time_max, result.trials.size());
+    
+    print_comparison_metrics("Comparison", result.inverse_speedup_mean, result.inverse_speedup_stddev,
+                            result.your_inverse_time_mean, result.bzip2_inverse_time_mean, result.trials.size());
+    
+    // === ROUND TRIP ===
+    std::cout << "\nROUND TRIP (Forward + Inverse):" << std::endl;
+    std::cout << "Your BWT:" << std::endl;
+    print_timing_stats("Round Trip", result.your_roundtrip_time_mean, result.your_roundtrip_time_stddev,
+                      result.your_roundtrip_time_min, result.your_roundtrip_time_max, result.trials.size());
+    
+    std::cout << "\nbzip2 BWT:" << std::endl;
+    print_timing_stats("Round Trip", result.bzip2_roundtrip_time_mean, result.bzip2_roundtrip_time_stddev,
+                      result.bzip2_roundtrip_time_min, result.bzip2_roundtrip_time_max, result.trials.size());
+    
+    print_comparison_metrics("Comparison", result.roundtrip_speedup_mean, result.roundtrip_speedup_stddev,
+                            result.your_roundtrip_time_mean, result.bzip2_roundtrip_time_mean, result.trials.size());
+    
+    // Throughput for round trip
+    if (result.roundtrip_speedup_mean > 0) {
+        double your_throughput = (result.file_size / (1024.0 * 1024.0)) / (result.your_roundtrip_time_mean / 1000.0);
+        double bzip2_throughput = (result.file_size / (1024.0 * 1024.0)) / (result.bzip2_roundtrip_time_mean / 1000.0);
         
         std::cout << "  Throughput:" << std::endl;
         std::cout << "    Your BWT:  " << std::fixed << std::setprecision(2) 
@@ -291,24 +475,43 @@ void print_comparison(const ComparisonResult& result) {
     
     std::cout << std::string(80, '=') << std::endl;
     
-    // Output summary line for aggregation (format: SUMMARY|test_name|your_time_mean|bzip2_time_mean|speedup|winner|faster_by_pct)
-    // Note: speedup = bzip2_time / your_time
-    //       If speedup < 1.0, bzip2 is faster (took less time)
-    //       If speedup > 1.0, your BWT is faster (took less time)
-    if (result.speedup_mean > 0) {
-        std::string winner = (result.speedup_mean < 1.0) ? "bzip2" : "your_bwt";
-        double speedup_pct;
-        if (result.speedup_mean < 1.0) {
-            // bzip2 is faster: calculate how much faster
-            speedup_pct = (1.0 / result.speedup_mean - 1.0) * 100.0;
-        } else {
-            // your BWT is faster: calculate how much faster
-            speedup_pct = (result.speedup_mean - 1.0) * 100.0;
-        }
-        std::cout << "SUMMARY|" << result.test_name << "|" 
-                  << std::fixed << std::setprecision(3) << result.your_time_mean << "|"
-                  << std::fixed << std::setprecision(3) << result.bzip2_time_mean << "|"
-                  << std::fixed << std::setprecision(3) << result.speedup_mean << "|"
+    // Output summary lines for aggregation
+    // Format: SUMMARY|test_name|phase|your_time_mean|bzip2_time_mean|speedup|winner|faster_by_pct
+    if (result.forward_speedup_mean > 0) {
+        std::string winner = (result.forward_speedup_mean < 1.0) ? "bzip2" : "your_bwt";
+        double speedup_pct = (result.forward_speedup_mean < 1.0) 
+            ? (1.0 / result.forward_speedup_mean - 1.0) * 100.0
+            : (result.forward_speedup_mean - 1.0) * 100.0;
+        std::cout << "SUMMARY|" << result.test_name << "|forward|" 
+                  << std::fixed << std::setprecision(3) << result.your_forward_time_mean << "|"
+                  << std::fixed << std::setprecision(3) << result.bzip2_forward_time_mean << "|"
+                  << std::fixed << std::setprecision(3) << result.forward_speedup_mean << "|"
+                  << winner << "|"
+                  << std::fixed << std::setprecision(1) << speedup_pct << std::endl;
+    }
+    
+    if (result.inverse_speedup_mean > 0) {
+        std::string winner = (result.inverse_speedup_mean < 1.0) ? "bzip2" : "your_bwt";
+        double speedup_pct = (result.inverse_speedup_mean < 1.0) 
+            ? (1.0 / result.inverse_speedup_mean - 1.0) * 100.0
+            : (result.inverse_speedup_mean - 1.0) * 100.0;
+        std::cout << "SUMMARY|" << result.test_name << "|inverse|" 
+                  << std::fixed << std::setprecision(3) << result.your_inverse_time_mean << "|"
+                  << std::fixed << std::setprecision(3) << result.bzip2_inverse_time_mean << "|"
+                  << std::fixed << std::setprecision(3) << result.inverse_speedup_mean << "|"
+                  << winner << "|"
+                  << std::fixed << std::setprecision(1) << speedup_pct << std::endl;
+    }
+    
+    if (result.roundtrip_speedup_mean > 0) {
+        std::string winner = (result.roundtrip_speedup_mean < 1.0) ? "bzip2" : "your_bwt";
+        double speedup_pct = (result.roundtrip_speedup_mean < 1.0) 
+            ? (1.0 / result.roundtrip_speedup_mean - 1.0) * 100.0
+            : (result.roundtrip_speedup_mean - 1.0) * 100.0;
+        std::cout << "SUMMARY|" << result.test_name << "|roundtrip|" 
+                  << std::fixed << std::setprecision(3) << result.your_roundtrip_time_mean << "|"
+                  << std::fixed << std::setprecision(3) << result.bzip2_roundtrip_time_mean << "|"
+                  << std::fixed << std::setprecision(3) << result.roundtrip_speedup_mean << "|"
                   << winner << "|"
                   << std::fixed << std::setprecision(1) << speedup_pct << std::endl;
     }
@@ -317,6 +520,7 @@ void print_comparison(const ComparisonResult& result) {
 int main(int argc, char* argv[]) {
     std::cout << "\n" << std::string(80, '=') << std::endl;
     std::cout << "BWT Performance Comparison: Your Implementation vs bzip2" << std::endl;
+    std::cout << "Testing: Forward BWT, Inverse BWT, and Round Trip" << std::endl;
     std::cout << std::string(80, '=') << std::endl;
     
     if (argc < 2) {
@@ -339,10 +543,16 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Check if bzip2 extractor exists
+    // Check if bzip2 extractors exist
     if (!file_exists("build/bzip2_bwt_extractor")) {
         std::cerr << "Error: bzip2_bwt_extractor not found. Please compile it first." << std::endl;
         std::cerr << "  Run: make build/bzip2_bwt_extractor" << std::endl;
+        return 1;
+    }
+    
+    if (!file_exists("build/bzip2_inverse_bwt_extractor")) {
+        std::cerr << "Error: bzip2_inverse_bwt_extractor not found. Please compile it first." << std::endl;
+        std::cerr << "  Run: make build/bzip2_inverse_bwt_extractor" << std::endl;
         return 1;
     }
     

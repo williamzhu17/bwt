@@ -138,15 +138,23 @@ make bzip2_benchmark BENCH_DIR=data/canterbury_corpus
 make bzip2_benchmark BENCH_DIR=data/canterbury_corpus BLOCK_SIZE=32768
 ```
 
-This benchmark:
+This benchmark performs a comprehensive comparison across three phases:
+- **Forward BWT**: Compares forward transform performance
+- **Inverse BWT**: Compares inverse transform performance
+- **Round Trip**: Compares total time for forward + inverse transform
+
+For each phase, the benchmark:
 - Runs 5 trials per file for statistical accuracy
 - Compares execution time, throughput, and output sizes
+- Calculates speedup ratios and statistical measures (mean, stddev, min, max)
 - Displays a detailed comparison report and aggregate summary
 
 You can also run the comparison tool directly on a single file:
 ```bash
 ./build/compare_bwt_performance <input_file> [block_size]
 ```
+
+This will test forward BWT, inverse BWT, and round trip performance for the specified file.
 
 ### Additional Scripts
 

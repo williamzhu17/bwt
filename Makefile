@@ -24,6 +24,7 @@ PERF_EXECS := $(BUILD_DIR)/performance
 
 # BWT Comparison Tools
 BZIP2_BWT_EXTRACTOR := $(BUILD_DIR)/bzip2_bwt_extractor
+BZIP2_INVERSE_BWT_EXTRACTOR := $(BUILD_DIR)/bzip2_inverse_bwt_extractor
 BWT_COMPARE := $(BUILD_DIR)/compare_bwt_performance
 
 # Source Files
@@ -49,7 +50,7 @@ UTIL_OBJS := $(patsubst $(UTIL_DIR)/%.cpp,$(BUILD_DIR)/util/%.o,$(UTIL_SRCS))
 
 .PHONY: all clean test performance rebuild bzip2_benchmark
 
-all: $(MAIN_EXECS) $(TEST_EXECS) $(PERF_EXECS) $(BZIP2_BWT_EXTRACTOR) $(BWT_COMPARE)
+all: $(MAIN_EXECS) $(TEST_EXECS) $(PERF_EXECS) $(BZIP2_BWT_EXTRACTOR) $(BZIP2_INVERSE_BWT_EXTRACTOR) $(BWT_COMPARE)
 
 # Build Main Executables
 $(BWT_EXEC): $(BUILD_DIR)/src/bwt.o $(PROD_OBJS)
@@ -93,6 +94,13 @@ $(BZIP2_BWT_EXTRACTOR): $(TEST_DIR)/bzip2_bwt_extractor.cpp
 		$(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
 		$(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o $(BUILD_DIR)/randtable.o \
 		-o $@ $(LDFLAGS)
+
+# Build bzip2 inverse BWT extractor (standalone, no bzip2 library needed)
+$(BZIP2_INVERSE_BWT_EXTRACTOR): $(TEST_DIR)/bzip2_inverse_bwt_extractor.cpp
+	@echo "Building bzip2 inverse BWT extractor $@"
+	@mkdir -p $(BUILD_DIR)
+	@$(CXX) $(CXXFLAGS) -I$(SRC_DIR) -I$(UTIL_DIR) -c $(TEST_DIR)/bzip2_inverse_bwt_extractor.cpp -o $(BUILD_DIR)/bzip2_inverse_bwt_extractor.o
+	@$(CXX) $(CXXFLAGS) $(BUILD_DIR)/bzip2_inverse_bwt_extractor.o -o $@ $(LDFLAGS)
 
 # Build BWT comparison tool
 $(BWT_COMPARE): $(TEST_DIR)/compare_bwt_performance.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS)
@@ -145,7 +153,7 @@ python_performance:
 # Usage: make bzip2_benchmark BENCH_DIR=<directory> [BLOCK_SIZE=<size>]
 # Example: make bzip2_benchmark BENCH_DIR=data/canterbury_corpus
 #          make bzip2_benchmark BENCH_DIR=data/canterbury_corpus BLOCK_SIZE=65536
-bzip2_benchmark: $(BWT_COMPARE) $(BZIP2_BWT_EXTRACTOR)
+bzip2_benchmark: $(BWT_COMPARE) $(BZIP2_BWT_EXTRACTOR) $(BZIP2_INVERSE_BWT_EXTRACTOR)
 	@if [ -z "$(BENCH_DIR)" ]; then \
 		echo "Error: BENCH_DIR not specified"; \
 		echo "Usage: make bzip2_benchmark BENCH_DIR=<directory> [BLOCK_SIZE=<size>]"; \
@@ -189,11 +197,11 @@ bzip2_benchmark: $(BWT_COMPARE) $(BZIP2_BWT_EXTRACTOR)
 	echo $(shell printf '=%.0s' {1..80}); \
 	if [ -f $$SUMMARY_FILE ]; then \
 		echo ""; \
-		printf "%-30s %12s %12s %10s %15s %12s\n" "Test File" "Your BWT (ms)" "bzip2 (ms)" "Speedup" "Winner" "Faster By"; \
-		echo $(shell printf '=%.0s' {1..100}); \
-		grep "^SUMMARY|" $$SUMMARY_FILE | while IFS='|' read -r prefix test_name your_time bzip2_time speedup winner speedup_pct; do \
-			printf "%-30s %12.3f %12.3f %10.3fx %15s %11.1f%%\n" \
-				"$$test_name" "$$your_time" "$$bzip2_time" "$$speedup" "$$winner" "$$speedup_pct"; \
+		printf "%-30s %-10s %12s %12s %10s %15s %12s\n" "Test File" "Phase" "Your BWT (ms)" "bzip2 (ms)" "Speedup" "Winner" "Faster By"; \
+		echo $(shell printf '=%.0s' {1..110}); \
+		grep "^SUMMARY|" $$SUMMARY_FILE | while IFS='|' read -r prefix test_name phase your_time bzip2_time speedup winner speedup_pct; do \
+			printf "%-30s %-10s %12.3f %12.3f %10.3fx %15s %11.1f%%\n" \
+				"$$test_name" "$$phase" "$$your_time" "$$bzip2_time" "$$speedup" "$$winner" "$$speedup_pct"; \
 		done; \
 		echo ""; \
 		YOUR_WINS=$$(grep "^SUMMARY|" $$SUMMARY_FILE | grep -c "your_bwt" || echo 0); \
@@ -211,12 +219,13 @@ bzip2_benchmark: $(BWT_COMPARE) $(BZIP2_BWT_EXTRACTOR)
 
 clean:
 	@echo "Cleaning..."
-	@rm -rf $(BUILD_DIR) $(MAIN_EXECS) $(TEST_EXECS) $(PERF_EXECS) $(BZIP2_BWT_EXTRACTOR) $(BWT_COMPARE)
+	@rm -rf $(BUILD_DIR) $(MAIN_EXECS) $(TEST_EXECS) $(PERF_EXECS) $(BZIP2_BWT_EXTRACTOR) $(BZIP2_INVERSE_BWT_EXTRACTOR) $(BWT_COMPARE)
 	@rm -rf tests/tmp
 	@rm -rf plots
 	@rm -f $(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
 	      $(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o \
-	      $(BUILD_DIR)/randtable.o $(BUILD_DIR)/bzip2_bwt_extractor.o
+	      $(BUILD_DIR)/randtable.o $(BUILD_DIR)/bzip2_bwt_extractor.o \
+	      $(BUILD_DIR)/bzip2_inverse_bwt_extractor.o
 
 rebuild: clean all
 
