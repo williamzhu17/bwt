@@ -47,7 +47,7 @@ UTIL_OBJS := $(patsubst $(UTIL_DIR)/%.cpp,$(BUILD_DIR)/util/%.o,$(UTIL_SRCS))
 
 # --- Main Targets ---
 
-.PHONY: all clean test performance rebuild
+.PHONY: all clean test performance rebuild bzip2_benchmark
 
 all: $(MAIN_EXECS) $(TEST_EXECS) $(PERF_EXECS) $(BZIP2_BWT_EXTRACTOR) $(BWT_COMPARE)
 
@@ -140,6 +140,74 @@ python_performance:
 	@echo "\n=== Running Python Performance Benchmarks ==="
 	@echo "\n--- tests/performance.py ---"
 	@$(PYTHON) -u tests/performance.py || exit 1
+
+# BWT Comparison Benchmark
+# Usage: make bzip2_benchmark BENCH_DIR=<directory> [BLOCK_SIZE=<size>]
+# Example: make bzip2_benchmark BENCH_DIR=data/canterbury_corpus
+#          make bzip2_benchmark BENCH_DIR=data/canterbury_corpus BLOCK_SIZE=65536
+bzip2_benchmark: $(BWT_COMPARE) $(BZIP2_BWT_EXTRACTOR)
+	@if [ -z "$(BENCH_DIR)" ]; then \
+		echo "Error: BENCH_DIR not specified"; \
+		echo "Usage: make bzip2_benchmark BENCH_DIR=<directory> [BLOCK_SIZE=<size>]"; \
+		echo "  Example: make bzip2_benchmark BENCH_DIR=data/canterbury_corpus"; \
+		echo "           make bzip2_benchmark BENCH_DIR=data/canterbury_corpus BLOCK_SIZE=65536"; \
+		exit 1; \
+	fi
+	@if [ ! -d "$(BENCH_DIR)" ]; then \
+		echo "Error: Directory '$(BENCH_DIR)' does not exist"; \
+		exit 1; \
+	fi
+	@mkdir -p $(BUILD_DIR)/tmp
+	@echo "\n" $(shell printf '=%.0s' {1..80})
+	@echo "BWT Performance Comparison: Your Implementation vs bzip2"
+	@echo "Directory: $(BENCH_DIR)"
+	@if [ -n "$(BLOCK_SIZE)" ]; then \
+		echo "Block Size: $(BLOCK_SIZE) bytes"; \
+	else \
+		echo "Block Size: 65536 bytes (default)"; \
+	fi
+	@echo "Number of Trials: 5"
+	@echo $(shell printf '=%.0s' {1..80})
+	@BLOCK_SIZE=$${BLOCK_SIZE:-65536}; \
+	FILE_COUNT=0; \
+	SUCCESS_COUNT=0; \
+	SUMMARY_FILE=$(BUILD_DIR)/tmp/benchmark_summary.txt; \
+	rm -f $$SUMMARY_FILE; \
+	for file in $(BENCH_DIR)/*; do \
+		if [ -f "$$file" ]; then \
+			FILE_COUNT=$$((FILE_COUNT + 1)); \
+			echo ""; \
+			echo "Testing: $$(basename $$file)"; \
+			if ./$(BWT_COMPARE) "$$file" $$BLOCK_SIZE 2>&1 | tee -a $$SUMMARY_FILE; then \
+				SUCCESS_COUNT=$$((SUCCESS_COUNT + 1)); \
+			fi; \
+		fi; \
+	done; \
+	echo ""; \
+	echo $(shell printf '=%.0s' {1..80}); \
+	echo "Aggregate Summary"; \
+	echo $(shell printf '=%.0s' {1..80}); \
+	if [ -f $$SUMMARY_FILE ]; then \
+		echo ""; \
+		printf "%-30s %12s %12s %10s %15s %12s\n" "Test File" "Your BWT (ms)" "bzip2 (ms)" "Speedup" "Winner" "Faster By"; \
+		echo $(shell printf '=%.0s' {1..100}); \
+		grep "^SUMMARY|" $$SUMMARY_FILE | while IFS='|' read -r prefix test_name your_time bzip2_time speedup winner speedup_pct; do \
+			printf "%-30s %12.3f %12.3f %10.3fx %15s %11.1f%%\n" \
+				"$$test_name" "$$your_time" "$$bzip2_time" "$$speedup" "$$winner" "$$speedup_pct"; \
+		done; \
+		echo ""; \
+		YOUR_WINS=$$(grep "^SUMMARY|" $$SUMMARY_FILE | grep -c "your_bwt" || echo 0); \
+		BZIP2_WINS=$$(grep "^SUMMARY|" $$SUMMARY_FILE | grep -c "bzip2" || echo 0); \
+		TOTAL=$$(grep -c "^SUMMARY|" $$SUMMARY_FILE || echo 0); \
+		echo "Summary Statistics:"; \
+		echo "  Your BWT faster: $$YOUR_WINS / $$TOTAL"; \
+		echo "  bzip2 faster:    $$BZIP2_WINS / $$TOTAL"; \
+	fi; \
+	echo ""; \
+	echo $(shell printf '=%.0s' {1..80}); \
+	echo "Benchmark Complete: $$SUCCESS_COUNT/$$FILE_COUNT files tested successfully"; \
+	echo $(shell printf '=%.0s' {1..80}); \
+	rm -f $$SUMMARY_FILE
 
 clean:
 	@echo "Cleaning..."

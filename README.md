@@ -117,6 +117,37 @@ You can also run the benchmark on a custom dataset:
 ./build/performance data/silesia 2
 ```
 
+### Comparing with bzip2
+
+To compare your BWT implementation's performance with bzip2's BWT:
+
+```bash
+make bzip2_benchmark BENCH_DIR=<directory> [BLOCK_SIZE=<size>]
+```
+
+**Arguments:**
+- `BENCH_DIR`: Directory containing test files (required).
+- `BLOCK_SIZE`: Block size in bytes (optional, default: 65536).
+
+**Example:**
+```bash
+# Compare on Canterbury Corpus with default block size
+make bzip2_benchmark BENCH_DIR=data/canterbury_corpus
+
+# Compare with custom block size
+make bzip2_benchmark BENCH_DIR=data/canterbury_corpus BLOCK_SIZE=32768
+```
+
+This benchmark:
+- Runs 5 trials per file for statistical accuracy
+- Compares execution time, throughput, and output sizes
+- Displays a detailed comparison report and aggregate summary
+
+You can also run the comparison tool directly on a single file:
+```bash
+./build/compare_bwt_performance <input_file> [block_size]
+```
+
 ### Additional Scripts
 
 - `make python_performance`: Runs the Python implementation benchmark (`tests/performance.py`) which mirrors the C++ performance test.

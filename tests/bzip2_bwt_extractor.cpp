@@ -1,19 +1,12 @@
 /*
  * Standalone BWT extractor using bzip2's BWT implementation
  * This extracts only the BWT transform without compression
- * 
- * Compile with:
- *   g++ -std=c++17 -O3 -I../bzip2 -I. bzip2_bwt_extractor.cpp \
- *       ../bzip2/blocksort.c ../bzip2/bzlib.c ../bzip2/compress.c \
- *       ../bzip2/huffman.c ../bzip2/crctable.c ../bzip2/randtable.c \
- *       -o bzip2_bwt_extractor
  */
 
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <cstring>
-#include <chrono>
 
 // Include bzip2 headers
 extern "C" {
@@ -173,18 +166,7 @@ int bzip2_bwt_process_file(const char* input_file, const char* output_file,
             return 1;
         }
         
-        // Note: bzip2 doesn't use a delimiter like your implementation.
-        // Your implementation writes a delimiter byte first, then BWT chunks.
-        // bzip2 stores the original pointer separately.
-        // 
-        // For this extractor, we'll write:
-        // - First byte: 0xFF (marker to indicate bzip2 format)
-        // - Next 3 bytes: origPtr (big-endian)
-        // - Then: BWT output
-        // 
-        // This format is NOT compatible with your inverse BWT, but allows
-        // for performance comparison of the BWT transform itself.
-        
+        // Write bzip2 format: marker byte (0xFF) + origPtr (3 bytes) + BWT output
         UChar marker = 0xFF;
         out.write((char*)&marker, 1);
         
@@ -219,14 +201,5 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    auto start = std::chrono::high_resolution_clock::now();
-    int result = bzip2_bwt_process_file(argv[1], argv[2], block_size);
-    auto end = std::chrono::high_resolution_clock::now();
-    
-    if (result == 0) {
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        std::cerr << "BWT completed in " << duration.count() << " ms" << std::endl;
-    }
-    
-    return result;
+    return bzip2_bwt_process_file(argv[1], argv[2], block_size);
 }
