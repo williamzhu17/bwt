@@ -15,14 +15,304 @@
 #include <algorithm>
 #include <numeric>
 #include <cmath>
+#include <fstream>
+#include <map>
 #include "../src/file_processor.hpp"
 #include "../src/bwt.hpp"
 #include "../src/inverse_bwt.hpp"
 #include "../util/file_utils.hpp"
 #include "../util/format_utils.hpp"
 
+// Include bzip2 headers for inline calls
+extern "C" {
+#include "../bzip2/bzlib_private.h"
+}
+
+// Forward declarations from bzip2 (will be linked from bzlib.c, blocksort.c, etc.)
+extern "C" {
+    void BZ2_blockSort(EState* s);
+    void BZ2_bz__AssertH__fail(int errcode);
+    extern UInt32 BZ2_crc32Table[256];
+}
+
 // Configuration
 const int DEFAULT_NUM_TRIALS = 5;
+
+// Default block sizes for performance tests
+// Note: bzip2 allocates space in multiples of 100KB, but can process any size up to the allocated maximum
+// The conversion logic automatically calculates the minimum blockSize100k needed
+const std::vector<size_t> DEFAULT_BLOCK_SIZES = {65536, 131072, 262144};  // 64KB, 128KB, 256KB
+
+// ===== bzip2 BWT helper functions (for inline calls) =====
+
+// Initialize EState for BWT only (no compression)
+static EState* init_bwt_state(int blockSize100k, int verbosity, int workFactor) {
+    EState* s = (EState*)malloc(sizeof(EState));
+    if (!s) return NULL;
+    
+    memset(s, 0, sizeof(EState));
+    
+    Int32 n = 100000 * blockSize100k;
+    s->arr1 = (UInt32*)malloc(n * sizeof(UInt32));
+    s->arr2 = (UInt32*)malloc((n + BZ_N_OVERSHOOT) * sizeof(UInt32));
+    s->ftab = (UInt32*)malloc(65537 * sizeof(UInt32));
+    
+    if (!s->arr1 || !s->arr2 || !s->ftab) {
+        if (s->arr1) free(s->arr1);
+        if (s->arr2) free(s->arr2);
+        if (s->ftab) free(s->ftab);
+        free(s);
+        return NULL;
+    }
+    
+    s->blockSize100k = blockSize100k;
+    s->nblockMAX = 100000 * blockSize100k - 19;
+    s->verbosity = verbosity;
+    s->workFactor = workFactor;
+    
+    s->block = (UChar*)s->arr2;
+    s->ptr = (UInt32*)s->arr1;
+    
+    return s;
+}
+
+// Free EState
+static void free_bwt_state(EState* s) {
+    if (!s) return;
+    if (s->arr1) free(s->arr1);
+    if (s->arr2) free(s->arr2);
+    if (s->ftab) free(s->ftab);
+    free(s);
+}
+
+// Extract BWT output from sorted block
+static void extract_bwt_output(EState* s, std::vector<UChar>& bwt_output) {
+    UInt32* ptr = s->ptr;
+    UChar* block = s->block;
+    Int32 nblock = s->nblock;
+    
+    // Reserve space for BWT output
+    bwt_output.resize(nblock);
+    
+    // Extract BWT: for each position i in sorted order,
+    // BWT[i] is the character before the suffix starting at ptr[i]
+    for (Int32 i = 0; i < nblock; i++) {
+        Int32 pos = ptr[i];
+        if (pos == 0) {
+            // Wrap around: character before position 0 is at end
+            bwt_output[i] = block[nblock - 1];
+        } else {
+            bwt_output[i] = block[pos - 1];
+        }
+    }
+}
+
+// Process a single block
+static bool process_block(EState* s, const UChar* data, Int32 size, 
+                          std::vector<UChar>& bwt_output, Int32& origPtr) {
+    if (size > s->nblockMAX) {
+        std::cerr << "Error: Block size " << size << " exceeds maximum " 
+                  << s->nblockMAX << std::endl;
+        return false;
+    }
+    
+    // Copy data into block
+    s->nblock = size;
+    memcpy(s->block, data, size);
+    
+    // Initialize inUse array
+    memset(s->inUse, 0, 256);
+    for (Int32 i = 0; i < size; i++) {
+        s->inUse[data[i]] = True;
+    }
+    
+    // Perform BWT
+    BZ2_blockSort(s);
+    
+    // Extract BWT output
+    extract_bwt_output(s, bwt_output);
+    
+    // Get original pointer
+    origPtr = s->origPtr;
+    
+    return true;
+}
+
+// Process file with BWT (inline version)
+int bzip2_bwt_process_file(const char* input_file, const char* output_file, 
+                           size_t block_size) {
+    std::ifstream in(input_file, std::ios::binary);
+    if (!in.is_open()) {
+        std::cerr << "Error: Cannot open input file: " << input_file << std::endl;
+        return 1;
+    }
+    
+    std::ofstream out(output_file, std::ios::binary);
+    if (!out.is_open()) {
+        std::cerr << "Error: Cannot open output file: " << output_file << std::endl;
+        return 1;
+    }
+    
+    // Convert block_size to bzip2's blockSize100k format
+    // bzip2 uses blocks of 100k * blockSize100k bytes
+    // nblockMAX = 100000 * blockSize100k - 19
+    // We need to find the minimum blockSize100k such that block_size <= nblockMAX
+    // block_size <= 100000 * blockSize100k - 19
+    // block_size + 19 <= 100000 * blockSize100k
+    // blockSize100k >= ceil((block_size + 19) / 100000)
+    int blockSize100k = ((block_size + 19) + 99999) / 100000;  // Ceiling division
+    if (blockSize100k < 1) blockSize100k = 1;
+    if (blockSize100k > 9) blockSize100k = 9;  // bzip2 max is 9
+    
+    // Initialize BWT state
+    EState* s = init_bwt_state(blockSize100k, 0, 30);
+    if (!s) {
+        std::cerr << "Error: Failed to initialize BWT state" << std::endl;
+        return 1;
+    }
+    
+    // Read and process blocks
+    std::vector<UChar> buffer(block_size);
+    std::vector<UChar> bwt_output;
+    
+    while (in.good()) {
+        // Read a block
+        in.read((char*)buffer.data(), block_size);
+        size_t bytes_read = in.gcount();
+        
+        if (bytes_read == 0) break;
+        
+        // Process block
+        Int32 origPtr;
+        if (!process_block(s, buffer.data(), bytes_read, bwt_output, origPtr)) {
+            free_bwt_state(s);
+            return 1;
+        }
+        
+        // Write bzip2 format: marker byte (0xFF) + origPtr (3 bytes) + BWT output
+        UChar marker = 0xFF;
+        out.write((char*)&marker, 1);
+        
+        // Write origPtr (3 bytes, big-endian, matching bzip2's format)
+        UChar origPtr_bytes[3];
+        origPtr_bytes[0] = (origPtr >> 16) & 0xFF;
+        origPtr_bytes[1] = (origPtr >> 8) & 0xFF;
+        origPtr_bytes[2] = origPtr & 0xFF;
+        out.write((char*)origPtr_bytes, 3);
+        
+        // Write BWT output (this is the actual BWT transform result)
+        out.write((char*)bwt_output.data(), bwt_output.size());
+    }
+    
+    free_bwt_state(s);
+    return 0;
+}
+
+// Inverse BWT using origPtr (bzip2's approach)
+std::string bzip2_inverse_bwt(const std::vector<unsigned char>& bwt_str, int origPtr) {
+    size_t len = bwt_str.size();
+    if (len == 0) return "";
+    
+    // Build occurrence table: Occ(c, i) = number of occurrences of c strictly before position i
+    std::vector<size_t> occ_table(len, 0);
+    std::map<unsigned char, size_t> occ_before;
+    
+    for (size_t i = 0; i < len; ++i) {
+        unsigned char ch = bwt_str[i];
+        size_t occ = occ_before.count(ch) ? occ_before[ch] : 0;
+        occ_table[i] = occ;
+        occ_before[ch] = occ + 1;
+    }
+    
+    // C(c): index of the first occurrence of c in the sorted first column
+    std::map<unsigned char, size_t> first_occurrence;
+    size_t total = 0;
+    for (const auto& entry : occ_before) {
+        first_occurrence[entry.first] = total;
+        total += entry.second;
+    }
+    
+    // Reconstruct original string by following LF mapping starting from origPtr
+    std::vector<char> result;
+    size_t row = origPtr;
+    
+    for (size_t i = 0; i < len; ++i) {
+        unsigned char ch = bwt_str[row];
+        result.push_back(static_cast<char>(ch));
+        row = first_occurrence[ch] + occ_table[row];
+    }
+    
+    // Reverse to get original string (we built it backwards)
+    std::reverse(result.begin(), result.end());
+    return std::string(result.begin(), result.end());
+}
+
+// Process file with inverse BWT (reads bzip2 format, inline version)
+int bzip2_inverse_bwt_process_file(const char* input_file, const char* output_file, 
+                                   size_t block_size) {
+    std::ifstream in(input_file, std::ios::binary);
+    if (!in.is_open()) {
+        std::cerr << "Error: Cannot open input file: " << input_file << std::endl;
+        return 1;
+    }
+    
+    std::ofstream out(output_file, std::ios::binary);
+    if (!out.is_open()) {
+        std::cerr << "Error: Cannot open output file: " << output_file << std::endl;
+        return 1;
+    }
+    
+    // Process blocks
+    while (in.good()) {
+        // Read marker byte (should be 0xFF)
+        unsigned char marker;
+        in.read((char*)&marker, 1);
+        if (in.gcount() == 0) break;
+        
+        if (marker != 0xFF) {
+            std::cerr << "Error: Invalid marker byte: 0x" << std::hex << (int)marker << std::endl;
+            return 1;
+        }
+        
+        // Read origPtr (3 bytes, big-endian)
+        unsigned char origPtr_bytes[3];
+        in.read((char*)origPtr_bytes, 3);
+        if (in.gcount() != 3) {
+            std::cerr << "Error: Failed to read origPtr" << std::endl;
+            return 1;
+        }
+        
+        int origPtr = (origPtr_bytes[0] << 16) | (origPtr_bytes[1] << 8) | origPtr_bytes[2];
+        
+        // Read BWT string (size should match block_size)
+        std::vector<unsigned char> bwt_output(block_size);
+        in.read((char*)bwt_output.data(), block_size);
+        size_t bytes_read = in.gcount();
+        
+        if (bytes_read == 0) break;
+        
+        // Resize if we read less than block_size (last block)
+        if (bytes_read < block_size) {
+            bwt_output.resize(bytes_read);
+        }
+        
+        // Validate origPtr
+        if (origPtr < 0 || origPtr >= (int)bytes_read) {
+            std::cerr << "Error: Invalid origPtr: " << origPtr << " (block size: " << bytes_read << ")" << std::endl;
+            return 1;
+        }
+        
+        // Apply inverse BWT
+        std::string result = bzip2_inverse_bwt(bwt_output, origPtr);
+        
+        // Write result
+        out.write(result.c_str(), result.size());
+    }
+    
+    return 0;
+}
+
+// ===== End of bzip2 helper functions =====
 
 struct TrialResult {
     // Forward BWT
@@ -232,15 +522,12 @@ bool run_your_inverse_bwt(const std::string& input_file, const std::string& outp
     return (result == 0);
 }
 
-// Run bzip2 forward BWT extractor
+// Run bzip2 forward BWT extractor (inline call)
 bool run_bzip2_forward_bwt(const std::string& input_file, const std::string& output_file,
                            size_t block_size, double& elapsed_time, size_t& output_size) {
-    std::string command = "./build/bzip2_bwt_extractor \"" + input_file + "\" \"" + 
-                          output_file + "\" " + std::to_string(block_size);
-    
     auto start = std::chrono::high_resolution_clock::now();
     
-    int result = system(command.c_str());
+    int result = bzip2_bwt_process_file(input_file.c_str(), output_file.c_str(), block_size);
     
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -254,15 +541,12 @@ bool run_bzip2_forward_bwt(const std::string& input_file, const std::string& out
     return true;
 }
 
-// Run bzip2 inverse BWT extractor
+// Run bzip2 inverse BWT extractor (inline call)
 bool run_bzip2_inverse_bwt(const std::string& input_file, const std::string& output_file,
                             size_t block_size, double& elapsed_time) {
-    std::string command = "./build/bzip2_inverse_bwt_extractor \"" + input_file + "\" \"" + 
-                          output_file + "\" " + std::to_string(block_size);
-    
     auto start = std::chrono::high_resolution_clock::now();
     
-    int result = system(command.c_str());
+    int result = bzip2_inverse_bwt_process_file(input_file.c_str(), output_file.c_str(), block_size);
     
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -524,35 +808,17 @@ int main(int argc, char* argv[]) {
     std::cout << std::string(80, '=') << std::endl;
     
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <input_file> [block_size]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <input_file>" << std::endl;
         std::cerr << "  input_file: File to test" << std::endl;
-        std::cerr << "  block_size: Block size in bytes (default: 65536)" << std::endl;
+        std::cerr << "  Note: Using default block sizes: 64KB, 128KB, 256KB" << std::endl;
         return 1;
     }
     
     std::string input_file = argv[1];
-    size_t block_size = 65536;
-    
-    if (argc >= 3) {
-        block_size = std::stoul(argv[2]);
-    }
     
     // Check if input file exists
     if (!file_exists(input_file)) {
         std::cerr << "Error: Input file not found: " << input_file << std::endl;
-        return 1;
-    }
-    
-    // Check if bzip2 extractors exist
-    if (!file_exists("build/bzip2_bwt_extractor")) {
-        std::cerr << "Error: bzip2_bwt_extractor not found. Please compile it first." << std::endl;
-        std::cerr << "  Run: make build/bzip2_bwt_extractor" << std::endl;
-        return 1;
-    }
-    
-    if (!file_exists("build/bzip2_inverse_bwt_extractor")) {
-        std::cerr << "Error: bzip2_inverse_bwt_extractor not found. Please compile it first." << std::endl;
-        std::cerr << "  Run: make build/bzip2_inverse_bwt_extractor" << std::endl;
         return 1;
     }
     
@@ -569,12 +835,18 @@ int main(int argc, char* argv[]) {
         test_name = test_name.substr(last_slash + 1);
     }
     
-    // Run comparison with 5 trials
-    std::cout << "Running " << DEFAULT_NUM_TRIALS << " trial(s)..." << std::endl;
-    ComparisonResult result = compare_implementations(input_file, test_name, block_size, DEFAULT_NUM_TRIALS);
-    
-    // Print results
-    print_comparison(result);
+    // Run comparison for each default block size
+    for (size_t block_size : DEFAULT_BLOCK_SIZES) {
+        std::cout << "\n" << std::string(80, '=') << std::endl;
+        std::cout << "Block Size: " << format_size(block_size) << std::endl;
+        std::cout << std::string(80, '=') << std::endl;
+        
+        std::cout << "Running " << DEFAULT_NUM_TRIALS << " trial(s)..." << std::endl;
+        ComparisonResult result = compare_implementations(input_file, test_name, block_size, DEFAULT_NUM_TRIALS);
+        
+        // Print results
+        print_comparison(result);
+    }
     
     return 0;
 }

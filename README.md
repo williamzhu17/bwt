@@ -122,21 +122,19 @@ You can also run the benchmark on a custom dataset:
 To compare your BWT implementation's performance with bzip2's BWT:
 
 ```bash
-make bzip2_benchmark BENCH_DIR=<directory> [BLOCK_SIZE=<size>]
+make bzip2_benchmark BENCH_DIR=<directory>
 ```
 
 **Arguments:**
 - `BENCH_DIR`: Directory containing test files (required).
-- `BLOCK_SIZE`: Block size in bytes (optional, default: 65536).
 
 **Example:**
 ```bash
-# Compare on Canterbury Corpus with default block size
+# Compare on Canterbury Corpus
 make bzip2_benchmark BENCH_DIR=data/canterbury_corpus
-
-# Compare with custom block size
-make bzip2_benchmark BENCH_DIR=data/canterbury_corpus BLOCK_SIZE=32768
 ```
+
+**Note:** The benchmark automatically tests multiple default block sizes (64KB, 128KB, and 256KB) to provide comprehensive performance comparisons. The bzip2 implementation automatically allocates sufficient space to handle these sizes.
 
 This benchmark performs a comprehensive comparison across three phases:
 - **Forward BWT**: Compares forward transform performance
@@ -145,16 +143,18 @@ This benchmark performs a comprehensive comparison across three phases:
 
 For each phase, the benchmark:
 - Runs 5 trials per file for statistical accuracy
+- Tests multiple block sizes (64KB, 128KB, 256KB) automatically
 - Compares execution time, throughput, and output sizes
 - Calculates speedup ratios and statistical measures (mean, stddev, min, max)
 - Displays a detailed comparison report and aggregate summary
+- **Uses inline function calls** for both implementations to ensure fair comparison (no process overhead)
 
 You can also run the comparison tool directly on a single file:
 ```bash
-./build/compare_bwt_performance <input_file> [block_size]
+./build/compare_bwt_performance <input_file>
 ```
 
-This will test forward BWT, inverse BWT, and round trip performance for the specified file.
+This will automatically test forward BWT, inverse BWT, and round trip performance for the specified file across all default block sizes (64KB, 128KB, 256KB).
 
 ### Additional Scripts
 

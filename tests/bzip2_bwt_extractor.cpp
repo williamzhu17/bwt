@@ -130,16 +130,14 @@ int bzip2_bwt_process_file(const char* input_file, const char* output_file,
     
     // Convert block_size to bzip2's blockSize100k format
     // bzip2 uses blocks of 100k * blockSize100k bytes
-    // We'll use the closest match
-    int blockSize100k = 1;  // 100KB default
-    if (block_size >= 900000) blockSize100k = 9;  // 900KB
-    else if (block_size >= 800000) blockSize100k = 8;
-    else if (block_size >= 700000) blockSize100k = 7;
-    else if (block_size >= 600000) blockSize100k = 6;
-    else if (block_size >= 500000) blockSize100k = 5;
-    else if (block_size >= 400000) blockSize100k = 4;
-    else if (block_size >= 300000) blockSize100k = 3;
-    else if (block_size >= 200000) blockSize100k = 2;
+    // nblockMAX = 100000 * blockSize100k - 19
+    // We need to find the minimum blockSize100k such that block_size <= nblockMAX
+    // block_size <= 100000 * blockSize100k - 19
+    // block_size + 19 <= 100000 * blockSize100k
+    // blockSize100k >= ceil((block_size + 19) / 100000)
+    int blockSize100k = ((block_size + 19) + 99999) / 100000;  // Ceiling division
+    if (blockSize100k < 1) blockSize100k = 1;
+    if (blockSize100k > 9) blockSize100k = 9;  // bzip2 max is 9
     
     // Initialize BWT state
     EState* s = init_bwt_state(blockSize100k, 0, 30);

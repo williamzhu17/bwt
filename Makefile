@@ -102,10 +102,27 @@ $(BZIP2_INVERSE_BWT_EXTRACTOR): $(TEST_DIR)/bzip2_inverse_bwt_extractor.cpp
 	@$(CXX) $(CXXFLAGS) -I$(SRC_DIR) -I$(UTIL_DIR) -c $(TEST_DIR)/bzip2_inverse_bwt_extractor.cpp -o $(BUILD_DIR)/bzip2_inverse_bwt_extractor.o
 	@$(CXX) $(CXXFLAGS) $(BUILD_DIR)/bzip2_inverse_bwt_extractor.o -o $@ $(LDFLAGS)
 
-# Build BWT comparison tool
-$(BWT_COMPARE): $(TEST_DIR)/compare_bwt_performance.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS)
+# Build BWT comparison tool (needs bzip2 object files for inline calls)
+$(BWT_COMPARE): $(TEST_DIR)/compare_bwt_performance.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS) \
+                $(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
+                $(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o $(BUILD_DIR)/randtable.o
 	@echo "Building BWT comparison tool $@"
-	@$(CXX) $(CXXFLAGS) -DBUILD_TESTS $(INCLUDES) $^ -o $@ $(LDFLAGS)
+	@mkdir -p $(BUILD_DIR)
+	@if [ ! -f $(BUILD_DIR)/blocksort.o ]; then \
+		echo "Compiling bzip2 C files..."; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/blocksort.c -o $(BUILD_DIR)/blocksort.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/bzlib.c -o $(BUILD_DIR)/bzlib.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/compress.c -o $(BUILD_DIR)/compress.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/decompress.c -o $(BUILD_DIR)/decompress.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/huffman.c -o $(BUILD_DIR)/huffman.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/crctable.c -o $(BUILD_DIR)/crctable.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/randtable.c -o $(BUILD_DIR)/randtable.o; \
+	fi
+	@$(CXX) $(CXXFLAGS) -DBUILD_TESTS $(INCLUDES) -I$(TEST_DIR)/../bzip2 \
+		$(TEST_DIR)/compare_bwt_performance.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS) \
+		$(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
+		$(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o $(BUILD_DIR)/randtable.o \
+		-o $@ $(LDFLAGS)
 
 # --- Compilation Rules ---
 
@@ -150,15 +167,15 @@ python_performance:
 	@$(PYTHON) -u tests/performance.py || exit 1
 
 # BWT Comparison Benchmark
-# Usage: make bzip2_benchmark BENCH_DIR=<directory> [BLOCK_SIZE=<size>]
+# Usage: make bzip2_benchmark BENCH_DIR=<directory>
 # Example: make bzip2_benchmark BENCH_DIR=data/canterbury_corpus
-#          make bzip2_benchmark BENCH_DIR=data/canterbury_corpus BLOCK_SIZE=65536
-bzip2_benchmark: $(BWT_COMPARE) $(BZIP2_BWT_EXTRACTOR) $(BZIP2_INVERSE_BWT_EXTRACTOR)
+# Note: Uses default block sizes: 64KB, 128KB, 256KB
+bzip2_benchmark: $(BWT_COMPARE)
 	@if [ -z "$(BENCH_DIR)" ]; then \
 		echo "Error: BENCH_DIR not specified"; \
-		echo "Usage: make bzip2_benchmark BENCH_DIR=<directory> [BLOCK_SIZE=<size>]"; \
+		echo "Usage: make bzip2_benchmark BENCH_DIR=<directory>"; \
 		echo "  Example: make bzip2_benchmark BENCH_DIR=data/canterbury_corpus"; \
-		echo "           make bzip2_benchmark BENCH_DIR=data/canterbury_corpus BLOCK_SIZE=65536"; \
+		echo "  Note: Uses default block sizes: 64KB, 128KB, 256KB"; \
 		exit 1; \
 	fi
 	@if [ ! -d "$(BENCH_DIR)" ]; then \
@@ -169,15 +186,10 @@ bzip2_benchmark: $(BWT_COMPARE) $(BZIP2_BWT_EXTRACTOR) $(BZIP2_INVERSE_BWT_EXTRA
 	@echo "\n" $(shell printf '=%.0s' {1..80})
 	@echo "BWT Performance Comparison: Your Implementation vs bzip2"
 	@echo "Directory: $(BENCH_DIR)"
-	@if [ -n "$(BLOCK_SIZE)" ]; then \
-		echo "Block Size: $(BLOCK_SIZE) bytes"; \
-	else \
-		echo "Block Size: 65536 bytes (default)"; \
-	fi
+	@echo "Block Sizes: 64KB, 128KB, 256KB (default)"
 	@echo "Number of Trials: 5"
 	@echo $(shell printf '=%.0s' {1..80})
-	@BLOCK_SIZE=$${BLOCK_SIZE:-65536}; \
-	FILE_COUNT=0; \
+	@FILE_COUNT=0; \
 	SUCCESS_COUNT=0; \
 	SUMMARY_FILE=$(BUILD_DIR)/tmp/benchmark_summary.txt; \
 	rm -f $$SUMMARY_FILE; \
@@ -186,7 +198,7 @@ bzip2_benchmark: $(BWT_COMPARE) $(BZIP2_BWT_EXTRACTOR) $(BZIP2_INVERSE_BWT_EXTRA
 			FILE_COUNT=$$((FILE_COUNT + 1)); \
 			echo ""; \
 			echo "Testing: $$(basename $$file)"; \
-			if ./$(BWT_COMPARE) "$$file" $$BLOCK_SIZE 2>&1 | tee -a $$SUMMARY_FILE; then \
+			if ./$(BWT_COMPARE) "$$file" 2>&1 | tee -a $$SUMMARY_FILE; then \
 				SUCCESS_COUNT=$$((SUCCESS_COUNT + 1)); \
 			fi; \
 		fi; \
