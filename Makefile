@@ -22,6 +22,10 @@ MAIN_EXECS := $(BWT_EXEC) $(INV_BWT_EXEC)
 TEST_EXECS := $(BUILD_DIR)/test_small $(BUILD_DIR)/test_medium
 PERF_EXECS := $(BUILD_DIR)/performance
 
+# BWT Comparison Tools
+BZIP2_BWT_EXTRACTOR := $(BUILD_DIR)/bzip2_bwt_extractor
+BWT_COMPARE := $(BUILD_DIR)/compare_bwt_performance
+
 # Source Files
 # Note: Exclude template implementation files that are included from headers
 UTIL_SRCS := $(filter-out $(UTIL_DIR)/blocking_queue.cpp $(UTIL_DIR)/reorder_buffer.cpp, $(wildcard $(UTIL_DIR)/*.cpp))
@@ -45,7 +49,7 @@ UTIL_OBJS := $(patsubst $(UTIL_DIR)/%.cpp,$(BUILD_DIR)/util/%.o,$(UTIL_SRCS))
 
 .PHONY: all clean test performance rebuild
 
-all: $(MAIN_EXECS) $(TEST_EXECS) $(PERF_EXECS)
+all: $(MAIN_EXECS) $(TEST_EXECS) $(PERF_EXECS) $(BZIP2_BWT_EXTRACTOR) $(BWT_COMPARE)
 
 # Build Main Executables
 $(BWT_EXEC): $(BUILD_DIR)/src/bwt.o $(PROD_OBJS)
@@ -63,6 +67,36 @@ $(TEST_EXECS): $(BUILD_DIR)/%: $(TEST_DIR)/%.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS)
 
 $(PERF_EXECS): $(BUILD_DIR)/%: $(TEST_DIR)/%.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS)
 	@echo "Building benchmark $@"
+	@$(CXX) $(CXXFLAGS) -DBUILD_TESTS $(INCLUDES) $^ -o $@ $(LDFLAGS)
+
+# Build bzip2 BWT extractor (requires bzip2 source files)
+# Note: Compiles C and C++ files together
+# We need to compile C files without C++-specific flags
+CC := gcc
+CFLAGS := -Wall -Wextra -O3
+
+$(BZIP2_BWT_EXTRACTOR): $(TEST_DIR)/bzip2_bwt_extractor.cpp
+	@echo "Building bzip2 BWT extractor $@"
+	@mkdir -p $(BUILD_DIR)
+	@echo "Compiling C files..."
+	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/blocksort.c -o $(BUILD_DIR)/blocksort.o
+	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/bzlib.c -o $(BUILD_DIR)/bzlib.o
+	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/compress.c -o $(BUILD_DIR)/compress.o
+	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/decompress.c -o $(BUILD_DIR)/decompress.o
+	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/huffman.c -o $(BUILD_DIR)/huffman.o
+	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/crctable.c -o $(BUILD_DIR)/crctable.o
+	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/randtable.c -o $(BUILD_DIR)/randtable.o
+	@echo "Compiling C++ file and linking..."
+	@$(CXX) $(CXXFLAGS) -I$(TEST_DIR)/../bzip2 -I$(SRC_DIR) -I$(UTIL_DIR) \
+		-c $(TEST_DIR)/bzip2_bwt_extractor.cpp -o $(BUILD_DIR)/bzip2_bwt_extractor.o
+	@$(CXX) $(CXXFLAGS) $(BUILD_DIR)/bzip2_bwt_extractor.o \
+		$(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
+		$(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o $(BUILD_DIR)/randtable.o \
+		-o $@ $(LDFLAGS)
+
+# Build BWT comparison tool
+$(BWT_COMPARE): $(TEST_DIR)/compare_bwt_performance.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS)
+	@echo "Building BWT comparison tool $@"
 	@$(CXX) $(CXXFLAGS) -DBUILD_TESTS $(INCLUDES) $^ -o $@ $(LDFLAGS)
 
 # --- Compilation Rules ---
@@ -109,9 +143,12 @@ python_performance:
 
 clean:
 	@echo "Cleaning..."
-	@rm -rf $(BUILD_DIR) $(MAIN_EXECS) $(TEST_EXECS) $(PERF_EXECS)
+	@rm -rf $(BUILD_DIR) $(MAIN_EXECS) $(TEST_EXECS) $(PERF_EXECS) $(BZIP2_BWT_EXTRACTOR) $(BWT_COMPARE)
 	@rm -rf tests/tmp
 	@rm -rf plots
+	@rm -f $(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
+	      $(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o \
+	      $(BUILD_DIR)/randtable.o $(BUILD_DIR)/bzip2_bwt_extractor.o
 
 rebuild: clean all
 
