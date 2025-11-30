@@ -28,8 +28,9 @@ BZIP2_INVERSE_BWT_EXTRACTOR := $(BUILD_DIR)/bzip2_inverse_bwt_extractor
 BWT_COMPARE := $(BUILD_DIR)/compare_bwt_performance
 
 # Source Files
-# Note: Exclude template implementation files that are included from headers
-UTIL_SRCS := $(filter-out $(UTIL_DIR)/blocking_queue.cpp $(UTIL_DIR)/reorder_buffer.cpp, $(wildcard $(UTIL_DIR)/*.cpp))
+# Note: Exclude template implementation files and bzip2-specific utilities
+# bzip2_bwt_utils.cpp and bwt_benchmark_runner.cpp require bzip2 object files and should be linked explicitly
+UTIL_SRCS := $(filter-out $(UTIL_DIR)/blocking_queue.cpp $(UTIL_DIR)/reorder_buffer.cpp $(UTIL_DIR)/bzip2_bwt_utils.cpp $(UTIL_DIR)/bwt_benchmark_runner.cpp, $(wildcard $(UTIL_DIR)/*.cpp))
 
 # --- Object Definitions ---
 
@@ -76,34 +77,52 @@ $(PERF_EXECS): $(BUILD_DIR)/%: $(TEST_DIR)/%.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS)
 CC := gcc
 CFLAGS := -Wall -Wextra -O3
 
-$(BZIP2_BWT_EXTRACTOR): $(TEST_DIR)/bzip2_bwt_extractor.cpp
+$(BZIP2_BWT_EXTRACTOR): $(TEST_DIR)/bzip2_bwt_extractor.cpp $(BUILD_DIR)/util/bzip2_bwt_utils.o
 	@echo "Building bzip2 BWT extractor $@"
 	@mkdir -p $(BUILD_DIR)
-	@echo "Compiling C files..."
-	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/blocksort.c -o $(BUILD_DIR)/blocksort.o
-	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/bzlib.c -o $(BUILD_DIR)/bzlib.o
-	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/compress.c -o $(BUILD_DIR)/compress.o
-	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/decompress.c -o $(BUILD_DIR)/decompress.o
-	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/huffman.c -o $(BUILD_DIR)/huffman.o
-	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/crctable.c -o $(BUILD_DIR)/crctable.o
-	@$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/randtable.c -o $(BUILD_DIR)/randtable.o
+	@if [ ! -f $(BUILD_DIR)/blocksort.o ]; then \
+		echo "Compiling C files..."; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/blocksort.c -o $(BUILD_DIR)/blocksort.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/bzlib.c -o $(BUILD_DIR)/bzlib.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/compress.c -o $(BUILD_DIR)/compress.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/decompress.c -o $(BUILD_DIR)/decompress.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/huffman.c -o $(BUILD_DIR)/huffman.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/crctable.c -o $(BUILD_DIR)/crctable.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/randtable.c -o $(BUILD_DIR)/randtable.o; \
+	fi
 	@echo "Compiling C++ file and linking..."
 	@$(CXX) $(CXXFLAGS) -I$(TEST_DIR)/../bzip2 -I$(SRC_DIR) -I$(UTIL_DIR) \
 		-c $(TEST_DIR)/bzip2_bwt_extractor.cpp -o $(BUILD_DIR)/bzip2_bwt_extractor.o
-	@$(CXX) $(CXXFLAGS) $(BUILD_DIR)/bzip2_bwt_extractor.o \
+	@$(CXX) $(CXXFLAGS) $(BUILD_DIR)/bzip2_bwt_extractor.o $(BUILD_DIR)/util/bzip2_bwt_utils.o \
 		$(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
 		$(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o $(BUILD_DIR)/randtable.o \
 		-o $@ $(LDFLAGS)
 
-# Build bzip2 inverse BWT extractor (standalone, no bzip2 library needed)
-$(BZIP2_INVERSE_BWT_EXTRACTOR): $(TEST_DIR)/bzip2_inverse_bwt_extractor.cpp
+# Build bzip2 inverse BWT extractor (needs bzip2 object files for bzip2_bwt_utils)
+$(BZIP2_INVERSE_BWT_EXTRACTOR): $(TEST_DIR)/bzip2_inverse_bwt_extractor.cpp $(BUILD_DIR)/util/bzip2_bwt_utils.o \
+                                 $(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
+                                 $(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o $(BUILD_DIR)/randtable.o
 	@echo "Building bzip2 inverse BWT extractor $@"
 	@mkdir -p $(BUILD_DIR)
-	@$(CXX) $(CXXFLAGS) -I$(SRC_DIR) -I$(UTIL_DIR) -c $(TEST_DIR)/bzip2_inverse_bwt_extractor.cpp -o $(BUILD_DIR)/bzip2_inverse_bwt_extractor.o
-	@$(CXX) $(CXXFLAGS) $(BUILD_DIR)/bzip2_inverse_bwt_extractor.o -o $@ $(LDFLAGS)
+	@if [ ! -f $(BUILD_DIR)/blocksort.o ]; then \
+		echo "Compiling bzip2 C files..."; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/blocksort.c -o $(BUILD_DIR)/blocksort.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/bzlib.c -o $(BUILD_DIR)/bzlib.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/compress.c -o $(BUILD_DIR)/compress.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/decompress.c -o $(BUILD_DIR)/decompress.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/huffman.c -o $(BUILD_DIR)/huffman.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/crctable.c -o $(BUILD_DIR)/crctable.o; \
+		$(CC) $(CFLAGS) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/../bzip2/randtable.c -o $(BUILD_DIR)/randtable.o; \
+	fi
+	@$(CXX) $(CXXFLAGS) -I$(SRC_DIR) -I$(UTIL_DIR) -I$(TEST_DIR)/../bzip2 -c $(TEST_DIR)/bzip2_inverse_bwt_extractor.cpp -o $(BUILD_DIR)/bzip2_inverse_bwt_extractor.o
+	@$(CXX) $(CXXFLAGS) $(BUILD_DIR)/bzip2_inverse_bwt_extractor.o $(BUILD_DIR)/util/bzip2_bwt_utils.o \
+		$(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
+		$(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o $(BUILD_DIR)/randtable.o \
+		-o $@ $(LDFLAGS)
 
 # Build BWT comparison tool (needs bzip2 object files for inline calls)
 $(BWT_COMPARE): $(TEST_DIR)/compare_bwt_performance.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS) \
+                $(BUILD_DIR)/util/bzip2_bwt_utils.o $(BUILD_DIR)/util/bwt_benchmark_runner.o \
                 $(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
                 $(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o $(BUILD_DIR)/randtable.o
 	@echo "Building BWT comparison tool $@"
@@ -120,6 +139,7 @@ $(BWT_COMPARE): $(TEST_DIR)/compare_bwt_performance.cpp $(TEST_LIB_OBJS) $(UTIL_
 	fi
 	@$(CXX) $(CXXFLAGS) -DBUILD_TESTS $(INCLUDES) -I$(TEST_DIR)/../bzip2 \
 		$(TEST_DIR)/compare_bwt_performance.cpp $(TEST_LIB_OBJS) $(UTIL_OBJS) \
+		$(BUILD_DIR)/util/bzip2_bwt_utils.o $(BUILD_DIR)/util/bwt_benchmark_runner.o \
 		$(BUILD_DIR)/blocksort.o $(BUILD_DIR)/bzlib.o $(BUILD_DIR)/compress.o \
 		$(BUILD_DIR)/decompress.o $(BUILD_DIR)/huffman.o $(BUILD_DIR)/crctable.o $(BUILD_DIR)/randtable.o \
 		-o $@ $(LDFLAGS)
@@ -142,7 +162,11 @@ $(BUILD_DIR)/src_test/%.o: $(SRC_DIR)/%.cpp
 $(BUILD_DIR)/util/%.o: $(UTIL_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	@echo "Compiling $<"
-	@$(CXX) $(CXXFLAGS) -DBUILD_TESTS -c $< -o $@
+	@if [ "$(notdir $<)" = "bzip2_bwt_utils.cpp" ]; then \
+		$(CXX) $(CXXFLAGS) -DBUILD_TESTS -I$(TEST_DIR)/../bzip2 -c $< -o $@; \
+	else \
+		$(CXX) $(CXXFLAGS) -DBUILD_TESTS -c $< -o $@; \
+	fi
 
 # --- Runners ---
 
