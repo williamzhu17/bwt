@@ -8,6 +8,11 @@
 #include <string>
 #include <fstream>
 #include <cstring>
+#include <thread>
+#include <atomic>
+
+#include "../util/blocking_queue.hpp"
+#include "../util/reorder_buffer.hpp"
 
 // Inverse BWT transform
 std::string bwt_inverse(const std::string& bwt_str, char delimiter) {
@@ -62,7 +67,36 @@ std::string bwt_inverse(const std::string& bwt_str, char delimiter) {
     return std::string(result.begin(), result.end());    
 }
 
-// Process file with inverse BWT transform
+struct Chunk {
+    size_t index;
+    std::string data;
+};
+
+// Writer thread function: writes inverse-BWT-transformed chunks in order
+static void writer_thread_function_inverse(FileProcessor& processor, ReorderBuffer<Chunk>& reorder_buffer) {
+    Chunk out_chunk;
+    while (reorder_buffer.get_next(out_chunk)) {
+        processor.write_chunk(out_chunk.data);
+    }
+}
+
+// Worker thread function: consume BWT chunks, apply inverse BWT, push into reorder buffer
+static void worker_thread_function_inverse(BlockingQueue<Chunk>& work_queue, ReorderBuffer<Chunk>& reorder_buffer, char delimiter) {
+    Chunk in_chunk;
+    while (work_queue.pop(in_chunk)) {
+        // Apply inverse BWT to this chunk
+        std::string result = bwt_inverse(in_chunk.data, delimiter);
+
+        Chunk out_chunk;
+        out_chunk.index = in_chunk.index;
+        out_chunk.data = std::move(result);
+
+        // Place result into reorder buffer
+        reorder_buffer.put(out_chunk.index, out_chunk);
+    }
+}
+
+// Process file with inverse BWT transform (multi-threaded over chunks)
 int bwt_inverse_process_file(const char* input_file, const char* output_file, size_t block_size) {
     // Note: Forward BWT outputs chunks of size (input_size + 1) due to delimiter
     // So we need to read chunks of size (block_size + 1) to match
@@ -80,24 +114,70 @@ int bwt_inverse_process_file(const char* input_file, const char* output_file, si
         processor.close();
         return 1;
     }
-    
-    // Process file in chunks
+
+    // Decide number of worker threads
+    unsigned int num_workers = std::thread::hardware_concurrency();
+    if (num_workers == 0) {
+        num_workers = 4; // reasonable default
+    }
+
+    // Bounded queue of input chunks for workers
+    BlockingQueue<Chunk> work_queue;
+
+    // Reorder buffer to deliver transformed chunks in-order to writer
+    const size_t reorder_capacity = num_workers * 4; // number of chunks allowed in flight
+    ReorderBuffer<Chunk> reorder_buffer(reorder_capacity);
+
+    std::atomic<size_t> next_chunk_index{0};
+
+    // Writer thread: writes inverse-BWT-transformed chunks in order
+    std::thread writer_thread(writer_thread_function_inverse, std::ref(processor), std::ref(reorder_buffer));
+
+    // Worker threads: consume BWT chunks, apply inverse BWT, push into reorder buffer
+    std::vector<std::thread> workers;
+    workers.reserve(num_workers);
+
+    for (unsigned int i = 0; i < num_workers; ++i) {
+        workers.emplace_back(worker_thread_function_inverse, std::ref(work_queue), std::ref(reorder_buffer), delimiter);
+    }
+
+    // Main thread: read BWT chunks from input and enqueue work
     while (processor.has_more_data()) {
         std::string chunk = processor.read_chunk();
-        
+
         if (chunk.empty()) {
             break;
         }
-        
-        // Apply inverse BWT and write result
-        std::string result = bwt_inverse(chunk, delimiter);
-        processor.write_chunk(result);
+
+        Chunk work_chunk;
+        work_chunk.index = next_chunk_index++;
+        work_chunk.data = std::move(chunk);
+
+        work_queue.push(work_chunk);
     }
-    
+
+    // No more work; let workers drain and exit
+    work_queue.close();
+
+    // Wait for all workers to finish and flush their results into the reorder buffer
+    for (auto& t : workers) {
+        if (t.joinable()) {
+            t.join();
+        }
+    }
+
+    // All results have been produced; close the reorder buffer so writer can finish
+    reorder_buffer.close();
+
+    if (writer_thread.joinable()) {
+        writer_thread.join();
+    }
+
     processor.close();
     return 0;
 }
 
+// Standalone CLI entry point (mirrors bwt.cpp)
 #ifndef BUILD_TESTS
 int main(int argc, char* argv[]) {
     // Check for command line arguments
@@ -117,7 +197,8 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    // Process the file
+    // Process the file using the multi-threaded inverse BWT
     return bwt_inverse_process_file(argv[1], argv[2], block_size);
 }
 #endif // BUILD_TESTS
+
