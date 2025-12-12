@@ -22,7 +22,10 @@ const int DEFAULT_NUM_TRIALS = 5;
 // Default block sizes for performance tests
 // Note: bzip2 allocates space in multiples of 100KB, but can process any size up to the allocated maximum
 // The conversion logic automatically calculates the minimum bzip2 internal block size parameter needed
-const std::vector<size_t> DEFAULT_BLOCK_SIZES = {65536, 131072, 262144};  // 64KB, 128KB, 256KB
+const std::vector<size_t> DEFAULT_BLOCK_SIZES = {65536, 131072, 262144, 524288, 1048576};  // 64KB, 128KB, 256KB, 512KB, 1MB
+
+// Global flag to indicate a fatal error (e.g., unable to find unique delimiter)
+static bool g_fatal_error = false;
 
 /**
  * Create temporary file paths for a trial
@@ -74,7 +77,11 @@ static ComparisonResult compare_implementations(const std::string& input_file,
         
         if (!BWTBenchmarkRunner::run_single_trial(input_file, block_size, temp_files, trial_result)) {
             std::cerr << "Warning: Trial " << (trial + 1) << " failed for " << test_name << std::endl;
-            continue;
+            // Treat this as a fatal error for this benchmarking run. This commonly occurs when
+            // we cannot find a unique delimiter in the input (see bwt_forward_process_file).
+            // In that case, further trials and block sizes would also fail, so we stop early.
+            g_fatal_error = true;
+            break;
         }
         
         result.trials.push_back(trial_result);
@@ -147,6 +154,10 @@ int main(int argc, char* argv[]) {
     
     // Run comparison for each default block size
     for (size_t block_size : DEFAULT_BLOCK_SIZES) {
+        if (g_fatal_error) {
+            std::cerr << "Fatal error encountered in previous trials; skipping remaining block sizes." << std::endl;
+            break;
+        }
         std::cout << "\n" << std::string(80, '=') << std::endl;
         std::cout << "Block Size: " << format_size(block_size) << std::endl;
         std::cout << std::string(80, '=') << std::endl;

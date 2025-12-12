@@ -42,60 +42,212 @@ int find_unique_char(const char* file_path) {
         }
     }
     
-    // All 256 byte values are used (extremely rare)
+    // All 256 byte values are used
     return -1;
 }
 
-// Build suffix array using prefix-doubling algorithm
-std::vector<size_t> build_suffix_array(const std::string& input) {
-    size_t n = input.length();
+// SA-IS implementation
+namespace {
 
-    std::vector<size_t> suffix_array(n);
-    std::vector<size_t> rank(n);
-    std::vector<size_t> temp(n);
+    std::vector<int> compute_bucket_sizes(const std::vector<int>& s, int sigma) {
+        std::vector<int> bucket_sizes(sigma, 0);
 
-    // Initialize ranks based on first character
-    for (size_t i = 0; i < n; i++) {
-        suffix_array[i] = i;
-        rank[i] = static_cast<unsigned char>(input[i]);
+        for (std::size_t i = 0; i < s.size(); ++i) {
+            ++bucket_sizes[s[i]];
+        }
+
+        return bucket_sizes;
     }
 
-    // Sort suffixes by first k characters, then 2k, etc.
-    for (size_t k = 1; k < n; k *= 2) {
-        // Compare based on current rank pairs
-        auto cmp = [&](size_t a, size_t b) {
-            if (rank[a] != rank[b]) return rank[a] < rank[b];
-            
-            // Compare next block (k steps ahead)
-            bool a_has_next = (a + k < n);
-            bool b_has_next = (b + k < n);
-            
-            if (a_has_next && b_has_next) {
-                return rank[a + k] < rank[b + k];
+    void bucket_bounds(
+        const std::vector<int>& bucket_sizes,
+        std::vector<int>& heads,
+        std::vector<int>& tails) 
+    {
+        const int sigma = static_cast<int>(bucket_sizes.size());
+
+        heads.resize(sigma);
+        tails.resize(sigma);
+
+        int sum = 0;
+
+        for (int i = 0; i < sigma; ++i) {
+            heads[i] = sum;
+            sum += bucket_sizes[i];
+            tails[i] = sum - 1;
+        }
+    }
+
+    std::vector<int> induce_sort(
+        const std::vector<int>& s,
+        const std::vector<bool>& is_s_type,
+        const std::vector<int>& lms_order,
+        const std::vector<int>& bucket_sizes
+    ) {
+        const size_t n = s.size();
+        std::vector<int> sa(n, -1);
+        std::vector<int> heads, tails;
+        bucket_bounds(bucket_sizes, heads, tails);
+
+        // place LMS at bucket tails
+        for (auto it = lms_order.rbegin(); it != lms_order.rend(); ++it) {
+            int pos = *it;
+            int bucket = s[pos];
+            sa[tails[bucket]] = pos;
+            --tails[bucket];
+        }
+
+        // induce L-type
+        bucket_bounds(bucket_sizes, heads, tails);
+        for (size_t i = 0; i < n; ++i) {
+            int j = sa[i] - 1;
+            if (j >= 0 && !is_s_type[j]) {
+                int bucket = s[j];
+                sa[heads[bucket]] = j;
+                ++heads[bucket];
             }
-            
-            // If one doesn't exist (past end), it is considered smaller
-            // If a is past end, a < b. If b is past end, b < a (so a > b)
-            return !a_has_next && b_has_next;
+        }
+
+        // induce S-type
+        bucket_bounds(bucket_sizes, heads, tails);
+        for (int i = static_cast<int>(n) - 1; i >= 0; --i) {
+            int j = sa[i] - 1;
+            if (j >= 0 && is_s_type[j]) {
+                int bucket = s[j];
+                sa[tails[bucket]] = j;
+                --tails[bucket];
+            }
+        }
+
+        return sa;
+    }
+
+    std::vector<int> sais(const std::vector<int>& s, int sigma) {
+        const size_t n = s.size();
+        if (n == 0) return {};
+        if (n == 1) return {0};
+
+        std::vector<bool> is_s_type(n, true);
+
+        for (int i = static_cast<int>(n) - 2; i >= 0; --i) {
+            if (s[i] == s[i + 1]) {
+                is_s_type[i] = is_s_type[i + 1];
+            } else {
+                is_s_type[i] = s[i] < s[i + 1];
+            }
+        }
+        auto is_lms = [&](int idx) {
+            return idx > 0 && is_s_type[idx] && !is_s_type[idx - 1];
         };
 
-        std::sort(suffix_array.begin(), suffix_array.end(), cmp);
-
-        // Recompute ranks based on sorted order
-        temp[suffix_array[0]] = 0;
-        for (size_t i = 1; i < n; i++) {
-            temp[suffix_array[i]] = temp[suffix_array[i - 1]] + (cmp(suffix_array[i - 1], suffix_array[i]) ? 1 : 0);
+        std::vector<int> lms_positions;
+        for (int i = 1; i < static_cast<int>(n); ++i) {
+            if (is_lms(i)) {
+                lms_positions.push_back(i);
+            }
         }
 
-        rank = temp;
+        const std::vector<int> bucket_sizes = compute_bucket_sizes(s, sigma);
+        std::vector<int> sa = induce_sort(s, is_s_type, lms_positions, bucket_sizes);
 
-        // If max rank is n-1, all suffixes are distinct
-        if (rank[suffix_array[n - 1]] == n - 1) {
-            break;
+        // collect LMS in SA order
+        std::vector<int> sorted_lms;
+        sorted_lms.reserve(lms_positions.size());
+        for (int idx : sa) {
+            if (is_lms(idx)) {
+                sorted_lms.push_back(idx);
+            }
         }
+
+        // name LMS substrings
+        std::vector<int> lms_name(n, -1);
+        int current_name = 0;
+        lms_name[sorted_lms.front()] = current_name;
+        for (size_t i = 1; i < sorted_lms.size(); ++i) {
+            int a = sorted_lms[i - 1];
+            int b = sorted_lms[i];
+            bool same = true;
+            while (true) {
+                if (s[a] != s[b]) {
+                    same = false;
+                    break;
+                }
+
+                a++;
+                b++;
+
+                bool a_lms = is_lms(a);
+                bool b_lms = is_lms(b);
+
+                if (a_lms && b_lms) {
+                    break;
+                }
+
+                if (a_lms != b_lms) {
+                    same = false;
+                    break;
+                }
+            }
+
+            if (!same) {
+                current_name++;
+            }
+
+            lms_name[sorted_lms[i]] = current_name;
+        }
+
+        const int num_names = current_name + 1;
+        std::vector<int> reduced_string;
+        reduced_string.reserve(lms_positions.size());
+
+        for (int pos : lms_positions) {
+            reduced_string.push_back(lms_name[pos]);
+        }
+
+        std::vector<int> reduced_sa;
+        if (num_names == static_cast<int>(lms_positions.size())) {
+            reduced_sa.resize(lms_positions.size());
+            
+            for (size_t i = 0; i < reduced_string.size(); ++i) {
+                reduced_sa[reduced_string[i]] = static_cast<int>(i);
+            }
+        } else {
+            reduced_sa = sais(reduced_string, num_names);
+        }
+
+        // rebuild LMS order from reduced SA
+        std::vector<int> new_lms_order(lms_positions.size());
+        for (size_t i = 0; i < reduced_sa.size(); ++i) {
+            new_lms_order[i] = lms_positions[reduced_sa[i]];
+        }
+
+        sa = induce_sort(s, is_s_type, new_lms_order, bucket_sizes);
+        return sa;
     }
 
-    return suffix_array;
+} // namespace
+
+// Build suffix array using SA-IS algorithm (O(n))
+std::vector<size_t> build_suffix_array(const std::string& input) {
+    const size_t n = input.size();
+    // Shift characters by 1 so sentinel 0 is unique smallest.
+    std::vector<int> data(n + 1);
+    for (size_t i = 0; i < n; ++i) {
+        data[i] = static_cast<unsigned char>(input[i]) + 1;
+    }
+    data[n] = 0; // sentinel
+
+    const int sigma = 257; // 0 sentinel + 256 byte values shifted by 1
+    std::vector<int> sa_int = sais(data, sigma);
+
+    std::vector<size_t> sa;
+    sa.reserve(n);
+    for (int idx : sa_int) {
+        if (idx != static_cast<int>(n)) {
+            sa.push_back(static_cast<size_t>(idx));
+        }
+    }
+    return sa;
 }
 
 // Forward BWT transform
