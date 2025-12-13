@@ -119,7 +119,7 @@ You can also run the benchmark on a custom dataset:
 
 ### Comparing with bzip2
 
-To compare your BWT implementation's performance with bzip2's BWT:
+To compare your BWT implementation's performance with bzip2p's BWT:
 
 ```bash
 make bzip2_benchmark BENCH_DIR=<directory>

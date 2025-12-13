@@ -180,10 +180,17 @@ test: $(TEST_EXECS)
 
 performance: $(PERF_EXECS)
 	@echo "\n=== Running Performance Benchmarks ==="
-	@for t in $(PERF_EXECS); do \
-		echo "\n--- $$t ---"; \
-		./$$t || exit 1; \
-	done
+	@if [ -z "$(DATA_DIR)" ]; then \
+		for t in $(PERF_EXECS); do \
+			echo "\n--- $$t ---"; \
+			./$$t || exit 1; \
+		done; \
+	else \
+		for t in $(PERF_EXECS); do \
+			echo "\n--- $$t ---"; \
+			./$$t "$(DATA_DIR)" $(NUM_TRIALS) || exit 1; \
+		done; \
+	fi
 
 python_performance:
 	@echo "\n=== Running Python Performance Benchmarks ==="
