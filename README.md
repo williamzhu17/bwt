@@ -179,4 +179,7 @@ http://corpus.canterbury.ac.nz/
 This project also uses test data from **Silesia Corpus**, a comprehensive compression benchmark corpus containing diverse file types representative of real-world data. Maintained by the Silesian University of Technology.
 http://sun.aei.polsl.pl/~sdeor/index.php?page=silesia
 
+This project uses **bzip2** (included as a submodule) for performance comparison benchmarks. bzip2 is a program and library for lossless, block-sorting data compression.
+https://gitlab.com/bzip2/bzip2
+
 This project leveraged AI assistance for coding and development.
